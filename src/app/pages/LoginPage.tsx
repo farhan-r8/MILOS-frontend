@@ -158,9 +158,13 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <span className="text-xs font-medium text-emerald-600">
-                      {role === 'admin' ? 'Akses pengurus' : 'Akses nasabah'}
-                    </span>
+                    {role === 'admin' ? (
+                      <span className="text-xs font-medium text-emerald-600">Akses pengurus</span>
+                    ) : (
+                      <Link to="/forgot-password" className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
+                        Lupa password?
+                      </Link>
+                    )}
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

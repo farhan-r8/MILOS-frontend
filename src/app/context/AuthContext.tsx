@@ -19,6 +19,7 @@ interface AuthContextType {
   token: string | null;
   login: (email: string, password: string, role: 'nasabah' | 'admin') => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
+  resetPassword: (email: string, newPassword: string) => Promise<boolean>;
   loginWithGoogle: (credential: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -93,6 +94,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
+  const resetPassword = async (email: string, newPassword: string): Promise<boolean> => {
+    await apiRequest<{ message: string }>('/auth/reset-password', {
+      method: 'POST',
+      body: { email, newPassword },
+    });
+    return true;
+  };
+
   const loginWithGoogle = async (credential: string): Promise<boolean> => {
     const payload = await apiRequest<AuthApiResponse>('/auth/google/login', {
       method: 'POST',
@@ -114,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       login,
       register,
+      resetPassword,
       loginWithGoogle,
       logout,
       isAuthenticated: !!user && !!token,
