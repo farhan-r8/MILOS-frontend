@@ -205,7 +205,7 @@ export default function LoginPage() {
 
               {role === 'admin' && (
                 <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
-                  Akun pengurus tidak didaftarkan dari halaman publik. Admin dibuat secara internal oleh pengurus atau langsung dari database.
+                  Akun pengurus tidak didaftarkan dari halaman publik dan wajib memakai email aktif yang valid. Admin dibuat secara internal oleh pengurus atau langsung dari database.
                 </div>
               )}
             </div>
