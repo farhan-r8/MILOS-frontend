@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowLeft, Eye, EyeOff, Leaf, Lock, Mail, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Leaf, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -10,34 +10,23 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const { resetPassword } = useAuth();
+  const { requestPasswordReset } = useAuth();
   const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (newPassword.length < 8) {
-      setError('Password baru minimal 8 karakter.');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError('Konfirmasi password tidak cocok.');
-      return;
-    }
+    setSuccessMessage('');
 
     setLoading(true);
     try {
-      const success = await resetPassword(email, newPassword);
+      const success = await requestPasswordReset(email);
       if (success) {
-        navigate('/login');
+        setSuccessMessage('Tautan reset password sudah dikirim. Silakan cek email Anda.');
+        setEmail('');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Reset password gagal.');
@@ -72,11 +61,16 @@ export default function ForgotPasswordPage() {
           <CardHeader className="space-y-2 pb-4">
             <CardTitle className="text-3xl text-slate-900">Lupa Password Nasabah</CardTitle>
             <CardDescription>
-              Masukkan email nasabah yang terdaftar lalu buat password baru untuk masuk kembali ke MILOS.
+              Masukkan email nasabah yang terdaftar. Kami akan mengirimkan tautan reset password ke email tersebut.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {successMessage && (
+                <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900">
+                  <AlertDescription>{successMessage}</AlertDescription>
+                </Alert>
+              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -100,60 +94,12 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">Password Baru</Label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    id="newPassword"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Minimal 8 karakter"
-                    className="h-14 rounded-2xl border-slate-200 pl-11 pr-12"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Konfirmasi Password Baru</Label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Ulangi password baru"
-                    className="h-14 rounded-2xl border-slate-200 pl-11 pr-12"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    aria-label={showConfirmPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
               <Button
                 type="submit"
                 className="h-14 w-full rounded-2xl bg-emerald-600 text-base font-semibold shadow-lg shadow-emerald-200 transition hover:bg-emerald-700"
                 disabled={loading}
               >
-                {loading ? 'Menyimpan password baru...' : 'Reset Password'}
+                {loading ? 'Mengirim tautan reset...' : 'Kirim Tautan Reset'}
               </Button>
             </form>
           </CardContent>
