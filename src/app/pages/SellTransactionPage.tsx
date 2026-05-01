@@ -90,6 +90,7 @@ export default function SellTransactionPage() {
         userId: user.id,
         wasteTypeId: formData.wasteType,
         weight: Number(formData.weight),
+        notes: formData.notes.trim(),
       });
 
       setSuccessData({

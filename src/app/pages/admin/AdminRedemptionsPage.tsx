@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DashboardNavbar } from '../../components/DashboardNavbar';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { ShoppingCart, Check, X, Eye, Clock, CheckCircle, XCircle, Package } from 'lucide-react';
@@ -22,161 +22,78 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-
-interface Redemption {
-  id: number;
-  userId: number;
-  userName: string;
-  userKos: string;
-  rewardName: string;
-  pointsUsed: number;
-  quantity: number;
-  address: string;
-  notes?: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
-  requestDate: string;
-  processedDate?: string;
-}
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '../../components/ui/tabs';
+import { useAuth } from '../../context/AuthContext';
+import {
+  fetchAdminRedemptions,
+  updateRedemptionStatus,
+  type RedemptionItem,
+} from '../../lib/milosApi';
 
 export default function AdminRedemptionsPage() {
-  const [redemptions, setRedemptions] = useState<Redemption[]>([]);
-  const [selectedRedemption, setSelectedRedemption] = useState<Redemption | null>(null);
+  const { token } = useAuth();
+  const [redemptions, setRedemptions] = useState<RedemptionItem[]>([]);
+  const [selectedRedemption, setSelectedRedemption] = useState<RedemptionItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Mock data for redemptions
+  const loadRedemptions = async () => {
+    if (!token) return;
+    try {
+      const data = await fetchAdminRedemptions(token);
+      setRedemptions(data);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal memuat penukaran hadiah.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const mockRedemptions: Redemption[] = [
-      {
-        id: 1,
-        userId: 1,
-        userName: 'Budi Santoso',
-        userKos: 'Melati',
-        rewardName: 'Tumbler Stainless',
-        pointsUsed: 50000,
-        quantity: 1,
-        address: 'Kos Melati No. 12, Desa Sukamakmur',
-        notes: 'Tolong kirim sore hari',
-        status: 'pending',
-        requestDate: '2026-04-20 10:30',
-      },
-      {
-        id: 2,
-        userId: 2,
-        userName: 'Siti Nurhaliza',
-        userKos: 'Mawar',
-        rewardName: 'Tas Belanja Kanvas',
-        pointsUsed: 60000,
-        quantity: 2,
-        address: 'Kos Mawar No. 5, Desa Sukamakmur',
-        status: 'approved',
-        requestDate: '2026-04-19 14:15',
-        processedDate: '2026-04-19 15:00',
-      },
-      {
-        id: 3,
-        userId: 3,
-        userName: 'Ahmad Fauzi',
-        userKos: 'Anggrek',
-        rewardName: 'Voucher Pulsa 50K',
-        pointsUsed: 52000,
-        quantity: 1,
-        address: 'Kos Anggrek No. 8, Desa Sukamakmur',
-        status: 'completed',
-        requestDate: '2026-04-18 09:00',
-        processedDate: '2026-04-18 10:00',
-      },
-      {
-        id: 4,
-        userId: 4,
-        userName: 'Dewi Lestari',
-        userKos: 'Kenanga',
-        rewardName: 'Bibit Tanaman Hias',
-        pointsUsed: 25000,
-        quantity: 1,
-        address: 'Kos Kenanga No. 3, Desa Sukamakmur',
-        notes: 'Stok habis',
-        status: 'rejected',
-        requestDate: '2026-04-17 16:20',
-        processedDate: '2026-04-17 17:00',
-      },
-      {
-        id: 5,
-        userId: 1,
-        userName: 'Budi Santoso',
-        userKos: 'Melati',
-        rewardName: 'Sedotan Stainless (Set)',
-        pointsUsed: 30000,
-        quantity: 2,
-        address: 'Kos Melati No. 12, Desa Sukamakmur',
-        status: 'pending',
-        requestDate: '2026-04-21 11:45',
-      },
-    ];
-    setRedemptions(mockRedemptions);
-  }, []);
+    loadRedemptions();
+  }, [token]);
 
-  const handleViewDetails = (redemption: Redemption) => {
+  const handleViewDetails = (redemption: RedemptionItem) => {
     setSelectedRedemption(redemption);
     setIsDialogOpen(true);
   };
 
-  const handleApprove = (redemption: Redemption) => {
-    setRedemptions(
-      redemptions.map((r) =>
-        r.id === redemption.id
-          ? { ...r, status: 'approved', processedDate: new Date().toISOString() }
-          : r
-      )
-    );
-    toast.success(`Permintaan penukaran ${redemption.rewardName} disetujui`);
-    setIsDialogOpen(false);
-  };
+  const handleStatusUpdate = async (status: 'approved' | 'rejected' | 'completed') => {
+    if (!token || !selectedRedemption) return;
 
-  const handleReject = (redemption: Redemption) => {
-    if (confirm('Yakin ingin menolak permintaan penukaran ini?')) {
-      setRedemptions(
-        redemptions.map((r) =>
-          r.id === redemption.id
-            ? { ...r, status: 'rejected', processedDate: new Date().toISOString() }
-            : r
-        )
-      );
-      toast.success('Permintaan penukaran ditolak');
+    setSubmitting(true);
+    try {
+      await updateRedemptionStatus(token, selectedRedemption.id, status);
+      toast.success('Status penukaran berhasil diperbarui');
       setIsDialogOpen(false);
+      setSelectedRedemption(null);
+      await loadRedemptions();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal memperbarui status penukaran.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleComplete = (redemption: Redemption) => {
-    setRedemptions(
-      redemptions.map((r) =>
-        r.id === redemption.id
-          ? { ...r, status: 'completed', processedDate: new Date().toISOString() }
-          : r
-      )
-    );
-    toast.success('Penukaran ditandai sebagai selesai');
-    setIsDialogOpen(false);
-  };
+  const filteredRedemptions = useMemo(
+    () =>
+      filterStatus === 'all'
+        ? redemptions
+        : redemptions.filter((item) => item.status === filterStatus),
+    [filterStatus, redemptions]
+  );
 
-  const filteredRedemptions =
-    filterStatus === 'all'
-      ? redemptions
-      : redemptions.filter((r) => r.status === filterStatus);
+  const pendingCount = redemptions.filter((item) => item.status === 'pending').length;
+  const approvedCount = redemptions.filter((item) => item.status === 'approved').length;
+  const completedCount = redemptions.filter((item) => item.status === 'completed').length;
+  const rejectedCount = redemptions.filter((item) => item.status === 'rejected').length;
 
-  const pendingCount = redemptions.filter((r) => r.status === 'pending').length;
-  const approvedCount = redemptions.filter((r) => r.status === 'approved').length;
-  const completedCount = redemptions.filter((r) => r.status === 'completed').length;
-  const rejectedCount = redemptions.filter((r) => r.status === 'rejected').length;
-
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: RedemptionItem['status']) => {
     switch (status) {
       case 'pending':
         return (
@@ -217,7 +134,6 @@ export default function AdminRedemptionsPage() {
 
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
@@ -229,59 +145,57 @@ export default function AdminRedemptionsPage() {
               </div>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Menunggu</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-yellow-600" />
-                    <p className="text-3xl font-bold text-gray-900">{pendingCount}</p>
+                    <div>
+                      <p className="text-sm text-gray-600">Menunggu</p>
+                      <p className="text-3xl font-bold text-gray-900">{pendingCount}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Disetujui</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="flex items-center gap-2">
                     <Package className="w-5 h-5 text-blue-600" />
-                    <p className="text-3xl font-bold text-gray-900">{approvedCount}</p>
+                    <div>
+                      <p className="text-sm text-gray-600">Disetujui</p>
+                      <p className="text-3xl font-bold text-gray-900">{approvedCount}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Selesai</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
-                    <p className="text-3xl font-bold text-gray-900">{completedCount}</p>
+                    <div>
+                      <p className="text-sm text-gray-600">Selesai</p>
+                      <p className="text-3xl font-bold text-gray-900">{completedCount}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Ditolak</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="flex items-center gap-2">
                     <XCircle className="w-5 h-5 text-red-600" />
-                    <p className="text-3xl font-bold text-gray-900">{rejectedCount}</p>
+                    <div>
+                      <p className="text-sm text-gray-600">Ditolak</p>
+                      <p className="text-3xl font-bold text-gray-900">{rejectedCount}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </div>
 
-          {/* Tabs */}
           <Tabs defaultValue="all" className="mb-6">
             <TabsList>
               <TabsTrigger value="all" onClick={() => setFilterStatus('all')}>
@@ -299,7 +213,6 @@ export default function AdminRedemptionsPage() {
             </TabsList>
           </Tabs>
 
-          {/* Redemptions Table */}
           <Card>
             <CardContent className="p-0">
               <Table>
@@ -307,7 +220,6 @@ export default function AdminRedemptionsPage() {
                   <TableRow>
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Nasabah</TableHead>
-                    <TableHead>Kos</TableHead>
                     <TableHead>Barang</TableHead>
                     <TableHead>Jumlah</TableHead>
                     <TableHead>Poin</TableHead>
@@ -316,9 +228,15 @@ export default function AdminRedemptionsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRedemptions.length === 0 ? (
+                  {loading ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        Memuat penukaran hadiah...
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredRedemptions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                         Tidak ada permintaan penukaran
                       </TableCell>
                     </TableRow>
@@ -329,14 +247,10 @@ export default function AdminRedemptionsPage() {
                           {new Date(redemption.requestDate).toLocaleDateString('id-ID', {
                             day: '2-digit',
                             month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
+                            year: 'numeric',
                           })}
                         </TableCell>
                         <TableCell className="font-medium">{redemption.userName}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{redemption.userKos}</Badge>
-                        </TableCell>
                         <TableCell>{redemption.rewardName}</TableCell>
                         <TableCell className="text-center">{redemption.quantity}x</TableCell>
                         <TableCell className="font-semibold text-green-700">
@@ -362,7 +276,6 @@ export default function AdminRedemptionsPage() {
         </div>
       </div>
 
-      {/* Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -374,25 +287,22 @@ export default function AdminRedemptionsPage() {
 
           {selectedRedemption && (
             <div className="space-y-4 py-4">
-              {/* Status */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-600 w-32">Status:</span>
                 {getStatusBadge(selectedRedemption.status)}
               </div>
 
-              {/* User Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Nama Nasabah</p>
                   <p className="font-medium">{selectedRedemption.userName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Kos</p>
-                  <Badge variant="outline">{selectedRedemption.userKos}</Badge>
+                  <p className="text-sm text-gray-600 mb-1">Email</p>
+                  <p className="font-medium">{selectedRedemption.userEmail || '-'}</p>
                 </div>
               </div>
 
-              {/* Reward Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Barang</p>
@@ -404,7 +314,6 @@ export default function AdminRedemptionsPage() {
                 </div>
               </div>
 
-              {/* Points */}
               <div>
                 <p className="text-sm text-gray-600 mb-1">Total Poin</p>
                 <p className="text-2xl font-bold text-green-700">
@@ -412,7 +321,6 @@ export default function AdminRedemptionsPage() {
                 </p>
               </div>
 
-              {/* Address */}
               <div>
                 <p className="text-sm text-gray-600 mb-1">Alamat Pengiriman</p>
                 <p className="font-medium bg-gray-50 p-3 rounded-lg">
@@ -420,7 +328,6 @@ export default function AdminRedemptionsPage() {
                 </p>
               </div>
 
-              {/* Notes */}
               {selectedRedemption.notes && (
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Catatan</p>
@@ -430,7 +337,6 @@ export default function AdminRedemptionsPage() {
                 </div>
               )}
 
-              {/* Dates */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-600 mb-1">Tanggal Permintaan</p>
@@ -455,19 +361,20 @@ export default function AdminRedemptionsPage() {
               <>
                 <Button
                   variant="outline"
-                  onClick={() => handleReject(selectedRedemption)}
+                  onClick={() => handleStatusUpdate('rejected')}
+                  disabled={submitting}
                 >
                   <X className="w-4 h-4 mr-2" />
                   Tolak
                 </Button>
-                <Button onClick={() => handleApprove(selectedRedemption)}>
+                <Button onClick={() => handleStatusUpdate('approved')} disabled={submitting}>
                   <Check className="w-4 h-4 mr-2" />
                   Setujui
                 </Button>
               </>
             )}
             {selectedRedemption?.status === 'approved' && (
-              <Button onClick={() => handleComplete(selectedRedemption)}>
+              <Button onClick={() => handleStatusUpdate('completed')} disabled={submitting}>
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Tandai Selesai
               </Button>

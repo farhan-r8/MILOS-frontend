@@ -21,6 +21,7 @@ export interface TransactionItem {
   pointsPerKg: number;
   status: 'pending' | 'verified' | 'rejected';
   method: 'Drop-off' | 'Pickup';
+  notes?: string;
   wasteType: string;
   wasteTypes: string[];
 }
@@ -49,6 +50,36 @@ export interface UserPointsResponse {
   userId: string;
   name?: string;
   totalPoints: number;
+  earnedPoints?: number;
+  reservedPoints?: number;
+}
+
+export interface RewardItem {
+  id: number;
+  name: string;
+  description: string;
+  pointsRequired: number;
+  stock: number;
+  category: string;
+  isActive?: boolean;
+}
+
+export interface RedemptionItem {
+  id: number;
+  rewardId: number;
+  rewardName: string;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  quantity: number;
+  pointsUsed: number;
+  address: string;
+  notes?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  requestDate: string;
+  processedDate?: string | null;
+  processedBy?: string | null;
+  processedByName?: string | null;
 }
 
 export interface SummaryResponse {
@@ -101,6 +132,7 @@ export async function createSellTransaction(params: {
   userId: string;
   wasteTypeId: string;
   weight: number;
+  notes?: string;
 }) {
   const transaction = await apiRequest<{ transactionId: number; id_transaksi: number; message: string }>(
     '/transaksi',
@@ -110,6 +142,7 @@ export async function createSellTransaction(params: {
       body: {
         userId: params.userId,
         method: 'Drop-off',
+        notes: params.notes,
       },
     }
   );
@@ -144,9 +177,80 @@ export async function fetchUserPoints(userId: string) {
   return apiRequest<UserPointsResponse>(`/users/${encodeURIComponent(userId)}/points`);
 }
 
+export async function fetchRewards() {
+  return apiRequest<RewardItem[]>('/rewards');
+}
+
+export async function fetchAdminRewards(token: string) {
+  return apiRequest<RewardItem[]>('/admin/rewards', { token });
+}
+
+export async function createReward(
+  token: string,
+  payload: Omit<RewardItem, 'id' | 'isActive'>
+) {
+  return apiRequest<{ message: string; id: number }>('/admin/rewards', {
+    method: 'POST',
+    token,
+    body: payload,
+  });
+}
+
+export async function updateReward(
+  token: string,
+  id: number,
+  payload: Omit<RewardItem, 'id' | 'isActive'>
+) {
+  return apiRequest<{ message: string }>(`/admin/rewards/${id}`, {
+    method: 'PUT',
+    token,
+    body: payload,
+  });
+}
+
+export async function deleteReward(token: string, id: number) {
+  return apiRequest<{ message: string }>(`/admin/rewards/${id}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+export async function createRewardRedemption(
+  token: string,
+  rewardId: number,
+  payload: { quantity: number; address: string; notes?: string }
+) {
+  return apiRequest<{ message: string; id: number }>(`/rewards/${rewardId}/redeem`, {
+    method: 'POST',
+    token,
+    body: payload,
+  });
+}
+
+export async function fetchMyRedemptions(token: string) {
+  return apiRequest<RedemptionItem[]>('/redemptions/me', { token });
+}
+
+export async function fetchAdminRedemptions(token: string) {
+  return apiRequest<RedemptionItem[]>('/admin/redemptions', { token });
+}
+
+export async function updateRedemptionStatus(
+  token: string,
+  redemptionId: number,
+  status: RedemptionItem['status']
+) {
+  return apiRequest<{ message: string }>(`/admin/redemptions/${redemptionId}/status`, {
+    method: 'PATCH',
+    token,
+    body: { status },
+  });
+}
+
 export async function createPickupRequest(params: {
   token: string;
   userId: string;
+  scheduleId?: string;
   wasteType: string;
   estimatedWeight: number;
   pickupDate: string;
@@ -159,6 +263,7 @@ export async function createPickupRequest(params: {
     token: params.token,
     body: {
       userId: params.userId,
+      scheduleId: params.scheduleId,
       wasteType: params.wasteType,
       estimatedWeight: params.estimatedWeight,
       pickupDate: params.pickupDate,

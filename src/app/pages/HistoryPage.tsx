@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { Search, Filter, Download, Calendar, Package } from 'lucide-react';
+import { Search, Filter, Calendar, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchTransactions, type TransactionItem } from '../lib/milosApi';
 import { toast } from 'sonner';
@@ -74,8 +74,13 @@ export default function HistoryPage() {
     });
   }, [transactions, searchQuery, filterType, filterMethod]);
 
+  const verifiedFilteredTransactions = useMemo(
+    () => filteredTransactions.filter((transaction) => transaction.status === 'verified'),
+    [filteredTransactions]
+  );
+
   const totalWeight = filteredTransactions.reduce((sum, item) => sum + item.weight, 0);
-  const totalPoints = filteredTransactions.reduce((sum, item) => sum + item.totalPoints, 0);
+  const totalPoints = verifiedFilteredTransactions.reduce((sum, item) => sum + item.totalPoints, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,6 +114,7 @@ export default function HistoryPage() {
               <CardHeader className="pb-3">
                 <CardDescription className="text-green-700">Total Poin</CardDescription>
                 <CardTitle className="text-3xl text-green-600">{totalPoints.toLocaleString()}</CardTitle>
+                <div className="text-xs text-green-700">Hanya dari transaksi terverifikasi</div>
               </CardHeader>
             </Card>
           </div>
@@ -120,10 +126,9 @@ export default function HistoryPage() {
                   <CardTitle>Semua Transaksi</CardTitle>
                   <CardDescription>Filter dan cari transaksi Anda.</CardDescription>
                 </div>
-                <Button variant="outline" className="md:w-auto" disabled>
-                  <Download className="w-4 h-4 mr-2" />
-                  Ekspor Data
-                </Button>
+                <Badge variant="outline" className="md:w-auto bg-gray-50 text-gray-600 border-gray-200">
+                  Ekspor data belum diaktifkan
+                </Badge>
               </div>
             </CardHeader>
             <CardContent>

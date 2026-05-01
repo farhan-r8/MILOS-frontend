@@ -63,10 +63,12 @@ export default function Dashboard() {
 
   const chartData = useMemo(() => {
     const grouped = new Map<string, number>();
-    transactions.forEach((transaction) => {
+    transactions
+      .filter((transaction) => transaction.status === 'verified')
+      .forEach((transaction) => {
       const key = monthFormatter.format(new Date(transaction.date));
       grouped.set(key, (grouped.get(key) || 0) + transaction.totalPoints);
-    });
+      });
 
     return Array.from(grouped.entries()).map(([month, points]) => ({ month, points }));
   }, [transactions]);
@@ -74,6 +76,7 @@ export default function Dashboard() {
   const recentTransactions = transactions.slice(0, 5);
   const totalWeight = transactions.reduce((sum, transaction) => sum + transaction.weight, 0);
   const pendingTransactions = transactions.filter((transaction) => transaction.status === 'pending').length;
+  const verifiedTransactions = transactions.filter((transaction) => transaction.status === 'verified');
   const activePickup = pickups.find((pickup) => ['pending', 'approved', 'scheduled'].includes(pickup.status));
 
   return (
@@ -105,7 +108,7 @@ export default function Dashboard() {
               <CardContent>
                 <div className="flex items-center gap-2 text-green-50">
                   <TrendingUp className="w-4 h-4" />
-                  <span className="text-sm">{transactions.length} transaksi tercatat</span>
+                  <span className="text-sm">{verifiedTransactions.length} transaksi terverifikasi</span>
                 </div>
               </CardContent>
             </Card>

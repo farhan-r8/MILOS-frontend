@@ -4,111 +4,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
-import {
-  Award,
-  TrendingUp,
-  Gift,
-  Star,
-  Trophy,
-  Target,
-  Calendar,
-} from 'lucide-react';
+import { Award, Gift, TrendingUp, Trophy } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router';
 import { SimpleLineChart } from '../components/SimpleLineChart';
 import { SimplePieChart } from '../components/SimplePieChart';
-import { fetchTransactions, fetchUserPoints, type TransactionItem } from '../lib/milosApi';
+import { fetchRewards, fetchTransactions, fetchUserPoints, type RewardItem, type TransactionItem } from '../lib/milosApi';
 import { toast } from 'sonner';
+import { buildAchievements, getLevelConfig, type AchievementItem } from '../lib/pointsProgram';
 
 const monthFormatter = new Intl.DateTimeFormat('id-ID', { month: 'short' });
 
-type AchievementItem = {
-  id: number;
-  title: string;
-  description: string;
-  icon: typeof Star;
-  progress: number;
-  unlocked: boolean;
-};
-
-const rewards = [
-  {
-    id: 1,
-    name: 'Voucher Belanja Rp 50.000',
-    points: 50000,
-    available: true,
-    stock: 15,
-  },
-  {
-    id: 2,
-    name: 'Tas Belanja Ramah Lingkungan',
-    points: 30000,
-    available: true,
-    stock: 25,
-  },
-  {
-    id: 3,
-    name: 'Tumbler Stainless',
-    points: 80000,
-    available: true,
-    stock: 10,
-  },
-  {
-    id: 4,
-    name: 'Voucher Belanja Rp 100.000',
-    points: 100000,
-    available: true,
-    stock: 8,
-  },
-  {
-    id: 5,
-    name: 'Paket Starter Kit Zero Waste',
-    points: 150000,
-    available: false,
-    stock: 0,
-  },
-  {
-    id: 6,
-    name: 'Donasi Pohon (1 bibit)',
-    points: 25000,
-    available: true,
-    stock: 50,
-  },
-];
-
-const getLevelConfig = (points: number) => {
-  if (points >= 50000) {
-    return { label: 'Platinum', progress: 100, remaining: 0, next: null as string | null };
-  }
-
-  if (points >= 10000) {
-    return {
-      label: 'Gold',
-      progress: Math.min(100, Math.round(((points - 10000) / 40000) * 100)),
-      remaining: Math.max(0, 50000 - points),
-      next: 'Platinum',
-    };
-  }
-
-  if (points >= 5000) {
-    return {
-      label: 'Silver',
-      progress: Math.min(100, Math.round(((points - 5000) / 5000) * 100)),
-      remaining: Math.max(0, 10000 - points),
-      next: 'Gold',
-    };
-  }
-
-  return {
-    label: 'Bronze',
-    progress: Math.min(100, Math.round((points / 5000) * 100)),
-    remaining: Math.max(0, 5000 - points),
-    next: 'Silver',
-  };
-};
-
 export default function PointsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [rewards, setRewards] = useState<RewardItem[]>([]);
   const [currentPoints, setCurrentPoints] = useState<number>(user?.points || 0);
   const [loading, setLoading] = useState(true);
 
@@ -122,14 +33,16 @@ export default function PointsPage() {
       }
 
       try {
-        const [transactionData, pointsData] = await Promise.all([
+        const [transactionData, pointsData, rewardData] = await Promise.all([
           fetchTransactions(user.id),
           fetchUserPoints(user.id),
+          fetchRewards(),
         ]);
 
         if (isMounted) {
           setTransactions(transactionData);
           setCurrentPoints(pointsData.totalPoints);
+          setRewards(rewardData);
         }
       } catch (error) {
         if (isMounted) {
@@ -153,31 +66,39 @@ export default function PointsPage() {
     return transactions
       .filter((transaction) => {
         const date = new Date(transaction.date);
-        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        return (
+          transaction.status === 'verified' &&
+          date.getMonth() === now.getMonth() &&
+          date.getFullYear() === now.getFullYear()
+        );
       })
       .reduce((sum, transaction) => sum + transaction.totalPoints, 0);
   }, [transactions]);
 
   const monthlyData = useMemo(() => {
     const grouped = new Map<string, number>();
-    transactions.forEach((transaction) => {
+    transactions
+      .filter((transaction) => transaction.status === 'verified')
+      .forEach((transaction) => {
       const key = monthFormatter.format(new Date(transaction.date));
       grouped.set(key, (grouped.get(key) || 0) + transaction.totalPoints);
-    });
+      });
 
     return Array.from(grouped.entries()).map(([month, points]) => ({ month, points }));
   }, [transactions]);
 
   const wasteTypeData = useMemo(() => {
-    if (transactions.length === 0) {
+    const verifiedTransactions = transactions.filter((transaction) => transaction.status === 'verified');
+
+    if (verifiedTransactions.length === 0) {
       return [];
     }
 
     const grouped = new Map<string, number>();
     const palette = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#6b7280', '#ef4444'];
-    const totalWeight = transactions.reduce((sum, transaction) => sum + transaction.weight, 0);
+    const totalWeight = verifiedTransactions.reduce((sum, transaction) => sum + transaction.weight, 0);
 
-    transactions.forEach((transaction) => {
+    verifiedTransactions.forEach((transaction) => {
       grouped.set(transaction.wasteType, (grouped.get(transaction.wasteType) || 0) + transaction.weight);
     });
 
@@ -188,61 +109,15 @@ export default function PointsPage() {
     }));
   }, [transactions]);
 
-  const achievements = useMemo<AchievementItem[]>(() => {
-    const totalTransactions = transactions.length;
-    const plasticWeight = transactions
-      .filter((transaction) => /plastik/i.test(transaction.wasteType))
-      .reduce((sum, transaction) => sum + transaction.weight, 0);
-    const uniqueMonths = new Set(
-      transactions.map((transaction) => {
-        const date = new Date(transaction.date);
-        return `${date.getFullYear()}-${date.getMonth()}`;
-      })
-    ).size;
+  const verifiedTransactions = useMemo(
+    () => transactions.filter((transaction) => transaction.status === 'verified'),
+    [transactions]
+  );
 
-    return [
-      {
-        id: 1,
-        title: 'Pemula Hijau',
-        description: 'Selesaikan 5 transaksi pertama',
-        icon: Star,
-        progress: Math.min(100, Math.round((totalTransactions / 5) * 100)),
-        unlocked: totalTransactions >= 5,
-      },
-      {
-        id: 2,
-        title: 'Pengumpul Plastik',
-        description: 'Kumpulkan 50 kg plastik',
-        icon: Trophy,
-        progress: Math.min(100, Math.round((plasticWeight / 50) * 100)),
-        unlocked: plasticWeight >= 50,
-      },
-      {
-        id: 3,
-        title: 'Pejuang Lingkungan',
-        description: 'Raih 10,000 poin',
-        icon: Award,
-        progress: Math.min(100, Math.round((currentPoints / 10000) * 100)),
-        unlocked: currentPoints >= 10000,
-      },
-      {
-        id: 4,
-        title: 'Konsisten',
-        description: 'Transaksi 6 bulan berturut-turut',
-        icon: Calendar,
-        progress: Math.min(100, Math.round((uniqueMonths / 6) * 100)),
-        unlocked: uniqueMonths >= 6,
-      },
-      {
-        id: 5,
-        title: 'Master Recycler',
-        description: 'Raih 50,000 poin',
-        icon: Target,
-        progress: Math.min(100, Math.round((currentPoints / 50000) * 100)),
-        unlocked: currentPoints >= 50000,
-      },
-    ];
-  }, [currentPoints, transactions]);
+  const achievements = useMemo<AchievementItem[]>(
+    () => buildAchievements(verifiedTransactions, currentPoints),
+    [currentPoints, verifiedTransactions]
+  );
 
   const unlockedAchievements = achievements.filter((achievement) => achievement.unlocked).length;
   const level = getLevelConfig(currentPoints);
@@ -434,7 +309,7 @@ export default function PointsPage() {
                   <div
                     key={reward.id}
                     className={`border-2 rounded-lg p-4 ${
-                      reward.available ? 'border-gray-200 hover:border-green-500' : 'border-gray-100 bg-gray-50'
+                      reward.stock > 0 ? 'border-gray-200 hover:border-green-500' : 'border-gray-100 bg-gray-50'
                     } transition`}
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -443,12 +318,12 @@ export default function PointsPage() {
                         <div className="flex items-center gap-2">
                           <Award className="w-4 h-4 text-green-600" />
                           <span className="text-lg font-bold text-green-600">
-                            {reward.points.toLocaleString()}
+                            {reward.pointsRequired.toLocaleString()}
                           </span>
                           <span className="text-sm text-gray-600">poin</span>
                         </div>
                       </div>
-                      <Gift className={`w-8 h-8 ${reward.available ? 'text-green-600' : 'text-gray-400'}`} />
+                      <Gift className={`w-8 h-8 ${reward.stock > 0 ? 'text-green-600' : 'text-gray-400'}`} />
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -457,12 +332,13 @@ export default function PointsPage() {
                       </span>
                       <Button
                         size="sm"
-                        disabled={!reward.available || currentPoints < reward.points}
+                        disabled={reward.stock < 1 || currentPoints < reward.pointsRequired}
                         className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300"
+                        onClick={() => navigate(`/rewards?redeem=${reward.id}`)}
                       >
-                        {!reward.available
+                        {reward.stock < 1
                           ? 'Habis'
-                          : currentPoints < reward.points
+                          : currentPoints < reward.pointsRequired
                           ? 'Poin Kurang'
                           : 'Tukar'}
                       </Button>

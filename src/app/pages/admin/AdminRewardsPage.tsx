@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DashboardNavbar } from '../../components/DashboardNavbar';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -31,22 +31,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
+import { useAuth } from '../../context/AuthContext';
+import {
+  createReward,
+  deleteReward,
+  fetchAdminRewards,
+  updateReward,
+  type RewardItem,
+} from '../../lib/milosApi';
 
-interface RewardItem {
-  id: number;
-  name: string;
-  description: string;
-  pointsRequired: number;
-  stock: number;
-  category: string;
-}
-
-type FormData = Omit<RewardItem, 'id'>;
+type FormData = Omit<RewardItem, 'id' | 'isActive'>;
 
 export default function AdminRewardsPage() {
+  const { token } = useAuth();
   const [rewards, setRewards] = useState<RewardItem[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingReward, setEditingReward] = useState<RewardItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
@@ -55,60 +57,21 @@ export default function AdminRewardsPage() {
     category: 'Peralatan',
   });
 
-  // Mock data for rewards
+  const loadRewards = async () => {
+    if (!token) return;
+    try {
+      const data = await fetchAdminRewards(token);
+      setRewards(data);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal memuat hadiah admin.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const mockRewards: RewardItem[] = [
-      {
-        id: 1,
-        name: 'Tumbler Stainless',
-        description: 'Tumbler ramah lingkungan kapasitas 500ml',
-        pointsRequired: 50000,
-        stock: 15,
-        category: 'Peralatan',
-      },
-      {
-        id: 2,
-        name: 'Tas Belanja Kanvas',
-        description: 'Tas belanja kuat dan tahan lama',
-        pointsRequired: 30000,
-        stock: 25,
-        category: 'Peralatan',
-      },
-      {
-        id: 3,
-        name: 'Voucher Pulsa 50K',
-        description: 'Voucher pulsa semua operator',
-        pointsRequired: 52000,
-        stock: 50,
-        category: 'Voucher',
-      },
-      {
-        id: 4,
-        name: 'Bibit Tanaman Hias',
-        description: 'Paket 3 bibit tanaman hias',
-        pointsRequired: 25000,
-        stock: 20,
-        category: 'Tanaman',
-      },
-      {
-        id: 5,
-        name: 'Sedotan Stainless (Set)',
-        description: 'Set sedotan stainless dengan sikat pembersih',
-        pointsRequired: 15000,
-        stock: 30,
-        category: 'Peralatan',
-      },
-      {
-        id: 6,
-        name: 'Kompos Organik 5kg',
-        description: 'Kompos organik berkualitas untuk tanaman',
-        pointsRequired: 20000,
-        stock: 40,
-        category: 'Pupuk',
-      },
-    ];
-    setRewards(mockRewards);
-  }, []);
+    loadRewards();
+  }, [token]);
 
   const handleAddClick = () => {
     setEditingReward(null);
@@ -134,14 +97,22 @@ export default function AdminRewardsPage() {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteClick = (reward: RewardItem) => {
-    if (confirm(`Yakin ingin menghapus ${reward.name}?`)) {
-      setRewards(rewards.filter((r) => r.id !== reward.id));
-      toast.success('Barang berhasil dihapus');
+  const handleDeleteClick = async (reward: RewardItem) => {
+    if (!token) return;
+    if (!confirm(`Yakin ingin menonaktifkan ${reward.name}?`)) return;
+
+    try {
+      await deleteReward(token, reward.id);
+      toast.success('Barang berhasil dinonaktifkan');
+      await loadRewards();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal menghapus barang.');
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!token) return;
+
     if (!formData.name.trim()) {
       toast.error('Nama barang harus diisi');
       return;
@@ -155,31 +126,34 @@ export default function AdminRewardsPage() {
       return;
     }
 
-    if (editingReward) {
-      // Update existing reward
-      setRewards(
-        rewards.map((r) =>
-          r.id === editingReward.id ? { ...formData, id: r.id } : r
-        )
-      );
-      toast.success('Barang berhasil diperbarui');
-    } else {
-      // Add new reward
-      const newReward: RewardItem = {
-        ...formData,
-        id: Math.max(0, ...rewards.map((r) => r.id)) + 1,
-      };
-      setRewards([...rewards, newReward]);
-      toast.success('Barang berhasil ditambahkan');
-    }
+    setSubmitting(true);
+    try {
+      if (editingReward) {
+        await updateReward(token, editingReward.id, formData);
+        toast.success('Barang berhasil diperbarui');
+      } else {
+        await createReward(token, formData);
+        toast.success('Barang berhasil ditambahkan');
+      }
 
-    setIsDialogOpen(false);
+      setIsDialogOpen(false);
+      await loadRewards();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal menyimpan barang.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const categories = ['Peralatan', 'Voucher', 'Tanaman', 'Pupuk', 'Lainnya'];
 
-  const totalItems = rewards.length;
-  const totalStock = rewards.reduce((sum, r) => sum + r.stock, 0);
+  const activeRewards = useMemo(
+    () => rewards.filter((reward) => reward.isActive !== false),
+    [rewards]
+  );
+
+  const totalItems = activeRewards.length;
+  const totalStock = activeRewards.reduce((sum, reward) => sum + reward.stock, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -187,7 +161,6 @@ export default function AdminRewardsPage() {
 
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -205,7 +178,6 @@ export default function AdminRewardsPage() {
               </Button>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card>
                 <CardHeader className="pb-3">
@@ -237,14 +209,13 @@ export default function AdminRewardsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold text-gray-900">
-                    {new Set(rewards.map((r) => r.category)).size}
+                    {new Set(activeRewards.map((reward) => reward.category)).size}
                   </p>
                 </CardContent>
               </Card>
             </div>
           </div>
 
-          {/* Rewards Table */}
           <Card>
             <CardContent className="p-0">
               <Table>
@@ -259,14 +230,20 @@ export default function AdminRewardsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rewards.length === 0 ? (
+                  {loading ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                        Belum ada barang. Klik tombol "Tambah Barang" untuk menambahkan.
+                        Memuat katalog hadiah...
+                      </TableCell>
+                    </TableRow>
+                  ) : activeRewards.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                        Belum ada barang.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    rewards.map((reward) => (
+                    activeRewards.map((reward) => (
                       <TableRow key={reward.id}>
                         <TableCell className="font-medium">{reward.name}</TableCell>
                         <TableCell>
@@ -312,7 +289,6 @@ export default function AdminRewardsPage() {
         </div>
       </div>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -323,7 +299,6 @@ export default function AdminRewardsPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {/* Name */}
             <div>
               <Label htmlFor="name">Nama Barang *</Label>
               <Input
@@ -334,7 +309,6 @@ export default function AdminRewardsPage() {
               />
             </div>
 
-            {/* Category */}
             <div>
               <Label htmlFor="category">Kategori *</Label>
               <Select
@@ -345,16 +319,15 @@ export default function AdminRewardsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Points Required */}
             <div>
               <Label htmlFor="points">Poin yang Dibutuhkan *</Label>
               <Input
@@ -363,13 +336,12 @@ export default function AdminRewardsPage() {
                 min={0}
                 value={formData.pointsRequired}
                 onChange={(e) =>
-                  setFormData({ ...formData, pointsRequired: parseInt(e.target.value) || 0 })
+                  setFormData({ ...formData, pointsRequired: parseInt(e.target.value, 10) || 0 })
                 }
                 placeholder="50000"
               />
             </div>
 
-            {/* Stock */}
             <div>
               <Label htmlFor="stock">Stok *</Label>
               <Input
@@ -378,13 +350,12 @@ export default function AdminRewardsPage() {
                 min={0}
                 value={formData.stock}
                 onChange={(e) =>
-                  setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })
+                  setFormData({ ...formData, stock: parseInt(e.target.value, 10) || 0 })
                 }
                 placeholder="15"
               />
             </div>
 
-            {/* Description */}
             <div>
               <Label htmlFor="description">Deskripsi</Label>
               <Textarea
@@ -401,8 +372,8 @@ export default function AdminRewardsPage() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleSubmit}>
-              {editingReward ? 'Perbarui' : 'Tambah'}
+            <Button onClick={handleSubmit} disabled={submitting}>
+              {submitting ? 'Menyimpan...' : editingReward ? 'Perbarui' : 'Tambah'}
             </Button>
           </DialogFooter>
         </DialogContent>

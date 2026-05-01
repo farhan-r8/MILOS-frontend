@@ -41,6 +41,14 @@ import { useAuth } from '../../context/AuthContext';
 
 const monthFormatter = new Intl.DateTimeFormat('id-ID', { month: 'short' });
 
+const pickupStatusLabels: Record<string, string> = {
+  pending: 'Menunggu Tinjauan',
+  approved: 'Disetujui',
+  scheduled: 'Dijadwalkan',
+  completed: 'Selesai',
+  cancelled: 'Dibatalkan',
+};
+
 export default function AdminDashboard() {
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -111,9 +119,16 @@ export default function AdminDashboard() {
   const handleAcceptPickup = async (pickup: PickupItem) => {
     if (!token) return;
     try {
-      await updatePickupStatus(token, pickup.rawId, 'scheduled');
-      setPickups((prev) => prev.filter((item) => item.rawId !== pickup.rawId));
-      toast.success('Permintaan pickup berhasil diterima.');
+      await updatePickupStatus(token, pickup.rawId, 'approved');
+      setPickups((prev) =>
+        prev.map((item) =>
+          item.rawId === pickup.rawId ? { ...item, status: 'approved' } : item
+        )
+      );
+      setSelectedPickup((current) =>
+        current?.rawId === pickup.rawId ? { ...current, status: 'approved' } : current
+      );
+      toast.success('Permintaan pickup berhasil disetujui.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Gagal memperbarui pickup.');
     }
@@ -255,14 +270,16 @@ export default function AdminDashboard() {
                     <div className="text-center py-8 text-gray-500">Tidak ada permintaan pickup pending.</div>
                   ) : (
                     pendingPickups.map((pickup) => (
-                      <div key={pickup.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <div className="font-semibold text-gray-900">{pickup.id}</div>
-                            <div className="text-sm text-gray-600">{pickup.customer}</div>
+                        <div key={pickup.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <div className="font-semibold text-gray-900">{pickup.id}</div>
+                              <div className="text-sm text-gray-600">{pickup.customer}</div>
+                            </div>
+                            <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+                              {pickupStatusLabels[pickup.status] ?? pickup.status}
+                            </Badge>
                           </div>
-                          <Badge className="bg-orange-100 text-orange-700 border-orange-200">Pending</Badge>
-                        </div>
                         <div className="space-y-1 text-sm text-gray-600">
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
@@ -279,11 +296,8 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                         <div className="flex gap-2 mt-3">
-                          <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => handleAcceptPickup(pickup)}>
-                            Terima
-                          </Button>
                           <Button size="sm" variant="outline" className="flex-1" onClick={() => handleShowDetail(pickup)}>
-                            Detail
+                            Tinjau & Proses
                           </Button>
                         </div>
                       </div>
@@ -345,11 +359,11 @@ export default function AdminDashboard() {
       </div>
 
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Detail Permintaan Pickup</DialogTitle>
-            <DialogDescription>Informasi lengkap pickup dari data backend.</DialogDescription>
-          </DialogHeader>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+            <DialogTitle>Tinjau Permintaan Pickup</DialogTitle>
+              <DialogDescription>Periksa detail nasabah dan setujui pickup setelah data terasa sesuai.</DialogDescription>
+            </DialogHeader>
           {selectedPickup && (
             <div className="space-y-4">
               <div>
@@ -402,6 +416,10 @@ export default function AdminDashboard() {
                 <div className="text-sm text-gray-600">Catatan</div>
                 <div className="text-sm bg-gray-50 p-3 rounded-lg">{selectedPickup.notes || '-'}</div>
               </div>
+              <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
+                Setelah disetujui, pickup ini akan berpindah ke status <span className="font-semibold">Disetujui</span> dan dapat
+                ditindaklanjuti pada proses operasional berikutnya.
+              </div>
             </div>
           )}
           <DialogFooter className="gap-2">
@@ -411,12 +429,13 @@ export default function AdminDashboard() {
             {selectedPickup && (
               <Button
                 className="bg-green-600 hover:bg-green-700"
+                disabled={selectedPickup.status !== 'pending'}
                 onClick={async () => {
                   await handleAcceptPickup(selectedPickup);
                   setShowDetailDialog(false);
                 }}
               >
-                Terima Pickup
+                {selectedPickup.status === 'pending' ? 'Setujui Pickup' : 'Pickup Sudah Diproses'}
               </Button>
             )}
           </DialogFooter>
