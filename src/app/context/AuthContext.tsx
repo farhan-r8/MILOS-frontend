@@ -17,6 +17,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  authReady: boolean;
   login: (email: string, password: string, role: 'nasabah' | 'admin') => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
   requestPasswordReset: (email: string) => Promise<boolean>;
@@ -47,10 +48,14 @@ const AUTH_STORAGE_KEY = 'milos_auth';
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!stored) return;
+    if (!stored) {
+      setAuthReady(true);
+      return;
+    }
 
     try {
       const parsed = JSON.parse(stored) as { user: User; token: string };
@@ -58,6 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(parsed.token);
     } catch (_error) {
       localStorage.removeItem(AUTH_STORAGE_KEY);
+    } finally {
+      setAuthReady(true);
     }
   }, []);
 
@@ -130,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       token,
+      authReady,
       login,
       register,
       requestPasswordReset,
@@ -138,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       isAuthenticated: !!user && !!token,
     }),
-    [token, user]
+    [authReady, token, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

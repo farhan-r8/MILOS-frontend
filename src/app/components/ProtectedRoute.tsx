@@ -7,7 +7,11 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { authReady, isAuthenticated, user } = useAuth();
+
+  if (!authReady) {
+    return null;
+  }
 
   // If not authenticated, redirect to login
   if (!isAuthenticated) {
