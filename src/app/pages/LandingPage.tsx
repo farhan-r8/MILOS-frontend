@@ -3,7 +3,6 @@ import { PublicNavbar } from '../components/PublicNavbar';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
-import { MapPreviewCard } from '../components/MapPreviewCard';
 import {
   Recycle,
   Users,
@@ -89,10 +88,6 @@ export default function LandingPage() {
   );
 
   const previewSchedules = schedules.slice(0, 4);
-  const landingMapQuery = useMemo(() => {
-    const primaryArea = previewSchedules[0]?.wilayah?.trim();
-    return primaryArea ? `${primaryArea}, Indonesia` : 'Rajapolah, Tasikmalaya, Indonesia';
-  }, [previewSchedules]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
@@ -354,14 +349,6 @@ export default function LandingPage() {
                 </Card>
               ))
             )}
-          </div>
-
-          <div className="mt-8">
-            <MapPreviewCard
-              title="Peta Wilayah Layanan"
-              description="Pratinjau area layanan berdasarkan wilayah pickup aktif yang saat ini tersedia."
-              query={landingMapQuery}
-            />
           </div>
         </div>
       </section>

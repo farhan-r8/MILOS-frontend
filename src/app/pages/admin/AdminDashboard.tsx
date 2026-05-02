@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DashboardNavbar } from '../../components/DashboardNavbar';
-import { MapPreviewCard } from '../../components/MapPreviewCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -381,11 +380,6 @@ export default function AdminDashboard() {
                   Alamat
                 </div>
                 <div>{selectedPickup.address || '-'}</div>
-                {selectedPickup.geocodedAddress && selectedPickup.geocodedAddress !== selectedPickup.address && (
-                  <div className="mt-1 text-xs text-gray-500">
-                    Hasil geocoding: {selectedPickup.geocodedAddress}
-                  </div>
-                )}
               </div>
               <div>
                 <div className="text-sm text-gray-600 flex items-center gap-1">
@@ -421,48 +415,6 @@ export default function AdminDashboard() {
               <div>
                 <div className="text-sm text-gray-600">Catatan</div>
                 <div className="text-sm bg-gray-50 p-3 rounded-lg">{selectedPickup.notes || '-'}</div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <div className="text-sm text-gray-600 mb-1">Koordinat Pickup</div>
-                  <div className="font-semibold text-gray-900">
-                    {selectedPickup.latitude !== null && selectedPickup.latitude !== undefined &&
-                    selectedPickup.longitude !== null && selectedPickup.longitude !== undefined
-                      ? `${selectedPickup.latitude}, ${selectedPickup.longitude}`
-                      : 'Belum tersedia'}
-                  </div>
-                  {(selectedPickup.latitude !== null &&
-                    selectedPickup.latitude !== undefined &&
-                    selectedPickup.longitude !== null &&
-                    selectedPickup.longitude !== undefined) ||
-                  selectedPickup.address ? (
-                    <a
-                      href={
-                        selectedPickup.latitude !== null &&
-                        selectedPickup.latitude !== undefined &&
-                        selectedPickup.longitude !== null &&
-                        selectedPickup.longitude !== undefined
-                          ? `https://www.google.com/maps?q=${selectedPickup.latitude},${selectedPickup.longitude}`
-                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                              selectedPickup.address || ''
-                            )}`
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-3 inline-flex text-sm font-medium text-green-700 hover:text-green-800"
-                    >
-                      Buka di Google Maps
-                    </a>
-                  ) : null}
-                </div>
-                <MapPreviewCard
-                  title="Peta Pickup"
-                  description="Pratinjau lokasi pickup berdasarkan koordinat atau alamat yang tersimpan."
-                  latitude={selectedPickup.latitude}
-                  longitude={selectedPickup.longitude}
-                  query={selectedPickup.geocodedAddress || selectedPickup.address || undefined}
-                  emptyMessage="Koordinat pickup belum tersedia untuk dipratinjau."
-                />
               </div>
               <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
                 Setelah disetujui, pickup ini akan berpindah ke status <span className="font-semibold">Disetujui</span> dan dapat

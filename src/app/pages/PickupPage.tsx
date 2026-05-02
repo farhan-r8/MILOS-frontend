@@ -16,7 +16,6 @@ import { Calendar, Clock, MapPin, Package, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { MapPreviewCard } from '../components/MapPreviewCard';
 import {
   createPickupRequest,
   fetchSchedules,
@@ -106,16 +105,6 @@ export default function PickupPage() {
     () => schedules.find((schedule) => String(schedule.id_jadwal) === formData.scheduleId) || null,
     [formData.scheduleId, schedules]
   );
-
-  const pickupPreviewQuery = useMemo(() => {
-    const parts = [
-      formData.address?.trim(),
-      selectedSchedule?.wilayah?.trim(),
-      'Indonesia',
-    ].filter(Boolean);
-
-    return parts.join(', ');
-  }, [formData.address, selectedSchedule?.wilayah]);
 
   const selectedWaste = useMemo(
     () => wasteTypes.find((item) => item.id === formData.wasteType) || null,
@@ -411,13 +400,6 @@ export default function PickupPage() {
             </Card>
 
             <div className="space-y-6">
-              <MapPreviewCard
-                title="Peta Lokasi Pickup"
-                description="Pratinjau lokasi berdasarkan alamat yang Anda masukkan."
-                query={pickupPreviewQuery}
-                emptyMessage="Isi alamat pickup untuk melihat pratinjau lokasi di peta."
-              />
-
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Informasi Penting</CardTitle>

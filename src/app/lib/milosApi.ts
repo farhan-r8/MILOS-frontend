@@ -42,9 +42,6 @@ export interface PickupItem {
   date: string;
   status: 'pending' | 'approved' | 'scheduled' | 'rejected' | 'done';
   notes: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  geocodedAddress?: string | null;
   requestedAt: string;
   scheduledAt: string | null;
 }
