@@ -3,6 +3,7 @@ import { PublicNavbar } from '../components/PublicNavbar';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
+import { MapPreviewCard } from '../components/MapPreviewCard';
 import {
   Recycle,
   Users,
@@ -88,6 +89,10 @@ export default function LandingPage() {
   );
 
   const previewSchedules = schedules.slice(0, 4);
+  const landingMapQuery = useMemo(() => {
+    const primaryArea = previewSchedules[0]?.wilayah?.trim();
+    return primaryArea ? `${primaryArea}, Indonesia` : 'Rajapolah, Tasikmalaya, Indonesia';
+  }, [previewSchedules]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
@@ -350,6 +355,14 @@ export default function LandingPage() {
               ))
             )}
           </div>
+
+          <div className="mt-8">
+            <MapPreviewCard
+              title="Peta Wilayah Layanan"
+              description="Pratinjau area layanan berdasarkan wilayah pickup aktif yang saat ini tersedia."
+              query={landingMapQuery}
+            />
+          </div>
         </div>
       </section>
 
@@ -479,15 +492,33 @@ export default function LandingPage() {
                 <li><a href="/register" className="hover:text-white transition">Daftar</a></li>
               </ul>
             </div>
-            <div>
-              <h3 className="font-semibold mb-4">Kontak</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>Email: info@milos.id</li>
-                <li>Telepon: 0812-3456-7890</li>
-                <li>Lokasi: Desa Sukamakmur</li>
-                <li>Jam: Senin-Sabtu, 08:00-16:00</li>
-              </ul>
-            </div>
+              <div>
+                <h3 className="font-semibold mb-4">Kontak</h3>
+                <ul className="space-y-2 text-gray-400">
+                  <li>
+                    Email:{' '}
+                    <a
+                      href="mailto:frhnrmdhn6@gmail.com"
+                      className="hover:text-white transition underline underline-offset-4"
+                    >
+                      frhnrmdhn6@gmail.com
+                    </a>
+                  </li>
+                  <li>
+                    WhatsApp:{' '}
+                    <a
+                      href="https://wa.me/6283101095706"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-white transition underline underline-offset-4"
+                    >
+                      083101095706
+                    </a>
+                  </li>
+                  <li>Lokasi: Desa Sukamakmur</li>
+                  <li>Jam: Senin-Sabtu, 08:00-16:00</li>
+                </ul>
+              </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2026 MILOS - Sistem Pengelolaan Sampah Digital. All rights reserved.</p>
