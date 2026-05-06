@@ -12,41 +12,50 @@ export function PublicNavbar() {
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
+    const navbarOffset = 96;
+
+    const scrollToHashSection = () => {
+      if (location.pathname !== '/' || !location.hash) return;
+
+      const sectionId = location.hash.replace('#', '');
+      const element = document.getElementById(sectionId);
+      if (!element) return;
+
+      const top = Math.max(0, element.offsetTop - navbarOffset);
+      window.scrollTo({ top, behavior: 'auto' });
+    };
+
     const handleScroll = () => {
+      if (location.pathname !== '/') {
+        setActiveSection('');
+        return;
+      }
+
+      const scrollPosition = window.scrollY + navbarOffset;
       const sections = ['jadwal', 'tentang', 'kontak'];
-      const scrollPosition = window.scrollY + 100;
-      const pageBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 24;
-
-      if (location.pathname === '/' && scrollPosition < 300) {
-        setActiveSection('beranda');
-        return;
-      }
-
-      if (pageBottom) {
-        setActiveSection('kontak');
-        return;
-      }
+      let nextActiveSection = 'beranda';
 
       for (const section of sections) {
         const element = document.getElementById(section);
         if (element) {
-          const offsetTop = element.offsetTop;
-          const offsetBottom = offsetTop + element.offsetHeight;
-
-          if (scrollPosition >= offsetTop && scrollPosition < offsetBottom) {
-            setActiveSection(section);
-            return;
+          if (scrollPosition >= element.offsetTop) {
+            nextActiveSection = section;
+          } else {
+            break;
           }
         }
       }
+
+      setActiveSection(nextActiveSection);
     };
 
     // Restore scroll position on mount
     const savedScrollPosition = sessionStorage.getItem('scrollPosition');
-    if (savedScrollPosition && location.pathname === '/') {
+    if (savedScrollPosition && location.pathname === '/' && !location.hash) {
       window.scrollTo(0, parseInt(savedScrollPosition));
     }
 
+    scrollToHashSection();
     handleScroll();
     window.addEventListener('scroll', handleScroll);
 
@@ -62,7 +71,7 @@ export function PublicNavbar() {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [location.pathname]);
+  }, [location.pathname, location.hash]);
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
@@ -94,7 +103,8 @@ export function PublicNavbar() {
     if (!element) return;
 
     setActiveSection(section);
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const top = Math.max(0, element.offsetTop - 96);
+    window.scrollTo({ top, behavior: 'smooth' });
   };
 
   const navLinkClass = (section: string) => {
