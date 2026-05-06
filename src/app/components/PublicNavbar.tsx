@@ -31,22 +31,36 @@ export function PublicNavbar() {
         return;
       }
 
-      const scrollPosition = window.scrollY + navbarOffset;
       const sections = ['jadwal', 'tentang', 'kontak'];
-      let nextActiveSection = 'beranda';
+      const markerLine = Math.max(navbarOffset + 24, window.innerHeight * 0.35);
+
+      const firstSection = document.getElementById(sections[0]);
+      if (firstSection) {
+        const firstRect = firstSection.getBoundingClientRect();
+        if (firstRect.top > markerLine) {
+          setActiveSection('beranda');
+          return;
+        }
+      }
 
       for (const section of sections) {
         const element = document.getElementById(section);
         if (element) {
-          if (scrollPosition >= element.offsetTop) {
-            nextActiveSection = section;
-          } else {
-            break;
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= markerLine && rect.bottom >= markerLine) {
+            setActiveSection(section);
+            return;
           }
         }
       }
 
-      setActiveSection(nextActiveSection);
+      const lastSection = document.getElementById(sections[sections.length - 1]);
+      if (lastSection && lastSection.getBoundingClientRect().top <= markerLine) {
+        setActiveSection('kontak');
+        return;
+      }
+
+      setActiveSection('beranda');
     };
 
     // Restore scroll position on mount
