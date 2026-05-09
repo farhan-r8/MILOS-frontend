@@ -126,6 +126,23 @@ export default function PickupPage() {
     [wasteTypes]
   );
 
+  const availableDaySummaries = useMemo(() => {
+    const grouped = new Map<string, Set<string>>();
+
+    schedules.forEach((schedule) => {
+      const day = schedule.hari;
+      if (!grouped.has(day)) {
+        grouped.set(day, new Set());
+      }
+      grouped.get(day)?.add(schedule.wilayah);
+    });
+
+    return Array.from(grouped.entries()).map(([day, areas]) => ({
+      day,
+      areas: Array.from(areas),
+    }));
+  }, [schedules]);
+
   useEffect(() => {
     if (!formData.scheduleId) return;
 
@@ -264,6 +281,9 @@ export default function PickupPage() {
             <p className="text-gray-600 mt-2">
               Pilih tanggal sesuai hari layanan dan gunakan jadwal pickup yang sudah diatur admin.
             </p>
+            <p className="mt-2 text-sm text-green-700">
+              Layanan pickup MILOS saat ini difokuskan untuk sekitar Desa Sukamakmur, Kab. Tasikmalaya.
+            </p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
@@ -274,6 +294,36 @@ export default function PickupPage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {!loadingSchedules && schedules.length > 0 && (
+                    <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+                      <div className="mb-2 text-sm font-semibold text-green-900">
+                        Hari layanan yang tersedia
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {availableDaySummaries.map((item) => (
+                          <div
+                            key={item.day}
+                            className="rounded-full border border-green-200 bg-white px-3 py-2 text-xs text-green-800"
+                          >
+                            <span className="font-semibold">{item.day}</span>
+                            <span className="text-green-700">
+                              {' '}• {item.areas.join(', ')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-3 text-xs text-green-800">
+                        Pilih tanggal yang jatuh pada hari layanan di atas agar jadwal admin muncul.
+                      </p>
+                    </div>
+                  )}
+
+                  {!loadingSchedules && schedules.length === 0 && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                      Saat ini belum ada jadwal pickup aktif dari admin. Silakan tambahkan jadwal terlebih dahulu di panel admin.
+                    </div>
+                  )}
+
                   {!loadingWasteTypes && wasteTypes.length === 0 && (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                       Saat ini belum ada jenis sampah aktif untuk dipilih. Silakan tambahkan atau aktifkan jenis sampah dari panel admin.
@@ -344,6 +394,11 @@ export default function PickupPage() {
                         Hari terpilih: <span className="font-medium capitalize">{dayNameFormatter.format(new Date(formData.pickupDate))}</span>
                       </p>
                     )}
+                    {!formData.pickupDate && availableDaySummaries.length > 0 && (
+                      <p className="text-xs text-gray-500">
+                        Contoh hari yang tersedia: {availableDaySummaries.map((item) => item.day).join(', ')}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -396,11 +451,15 @@ export default function PickupPage() {
                         id="address"
                         className="pl-10 min-h-24"
                         placeholder="Alamat lengkap untuk pickup"
+                        aria-label="Alamat pickup"
                         value={formData.address}
                         onChange={(e) => handleChange('address', e.target.value)}
                         required
                       />
                     </div>
+                    <p className="text-xs text-gray-500">
+                      Gunakan alamat di sekitar Desa Sukamakmur, Kab. Tasikmalaya agar pickup lebih mudah diproses.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -443,6 +502,10 @@ export default function PickupPage() {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2">Pilih Tanggal Dulu</h4>
                     <p className="text-gray-600">Setelah memilih tanggal, sistem hanya menampilkan jadwal dengan hari yang cocok.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Cakupan Area</h4>
+                    <p className="text-gray-600">Layanan pickup difokuskan untuk sekitar Desa Sukamakmur, Kab. Tasikmalaya.</p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2">Minimum Berat</h4>

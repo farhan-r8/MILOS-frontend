@@ -108,6 +108,9 @@ export default function LandingPage() {
                 MILOS membantu proses jual sampah, pengajuan pickup, penukaran hadiah, dan pengelolaan jadwal
                 secara digital agar alur nasabah dan pengurus lebih tertata.
               </p>
+              <p className="mb-8 text-sm font-medium text-green-700">
+                Area layanan saat ini difokuskan untuk sekitar Desa Sukamakmur, Kab. Tasikmalaya.
+              </p>
               <div className="flex flex-wrap gap-4">
                 <Button
                   size="lg"
@@ -316,7 +319,7 @@ export default function LandingPage() {
               Jadwal Pengambilan Sampah
             </h2>
             <p className="text-gray-600">
-              Kalender ini membaca jadwal aktif yang diatur pengurus dari dashboard admin.
+              Kalender ini membaca jadwal aktif yang diatur pengurus dari dashboard admin untuk area sekitar Desa Sukamakmur, Kab. Tasikmalaya.
             </p>
           </div>
 
