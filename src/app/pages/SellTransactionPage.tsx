@@ -66,6 +66,11 @@ export default function SellTransactionPage() {
     [formData.wasteType, wasteTypes]
   );
 
+  const availableWasteTypeLabels = useMemo(
+    () => wasteTypes.map((item) => item.label).join(', '),
+    [wasteTypes]
+  );
+
   const estimatedPoints = selectedWaste && formData.weight
     ? selectedWaste.pointsPerKg * Number(formData.weight)
     : 0;
@@ -75,6 +80,11 @@ export default function SellTransactionPage() {
 
     if (!token || !user) {
       toast.error('Sesi login tidak ditemukan. Silakan masuk ulang.');
+      return;
+    }
+
+    if (wasteTypes.length === 0) {
+      toast.error('Belum ada jenis sampah yang tersedia. Silakan hubungi admin.');
       return;
     }
 
@@ -193,6 +203,12 @@ export default function SellTransactionPage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {!loadingWasteTypes && wasteTypes.length === 0 && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                      Saat ini belum ada jenis sampah aktif untuk dipilih. Silakan tambahkan atau aktifkan jenis sampah dari panel admin.
+                    </div>
+                  )}
+
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
                     <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-blue-800">
@@ -207,10 +223,18 @@ export default function SellTransactionPage() {
                     <Select
                       value={formData.wasteType}
                       onValueChange={(value) => handleChange('wasteType', value)}
-                      disabled={loadingWasteTypes}
+                      disabled={loadingWasteTypes || wasteTypes.length === 0}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={loadingWasteTypes ? 'Memuat jenis sampah...' : 'Pilih jenis sampah'} />
+                        <SelectValue
+                          placeholder={
+                            loadingWasteTypes
+                              ? 'Memuat jenis sampah...'
+                              : wasteTypes.length === 0
+                              ? 'Belum ada jenis sampah tersedia'
+                              : 'Pilih jenis sampah'
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {wasteTypes.map((type) => (
@@ -220,6 +244,9 @@ export default function SellTransactionPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {availableWasteTypeLabels && (
+                      <p className="text-xs text-gray-500">Pilihan tersedia: {availableWasteTypeLabels}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -263,7 +290,11 @@ export default function SellTransactionPage() {
                   </div>
 
                   <div className="flex flex-col gap-3 pt-4 sm:flex-row">
-                    <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700" disabled={submitting}>
+                    <Button
+                      type="submit"
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      disabled={submitting || wasteTypes.length === 0}
+                    >
                       <Package className="w-4 h-4 mr-2" />
                       {submitting ? 'Mengirim...' : 'Ajukan Transaksi'}
                     </Button>
