@@ -46,17 +46,31 @@ export default function RewardsPage() {
     if (!user?.id || !token) return;
 
     try {
-      const [rewardData, pointsData, redemptionData] = await Promise.all([
+      const [rewardResult, pointsResult, redemptionResult] = await Promise.allSettled([
         fetchRewards(),
-        fetchUserPoints(user.id),
+        fetchUserPoints(user.id, token),
         fetchMyRedemptions(token),
       ]);
 
-      setRewards(rewardData);
-      setCurrentPoints(pointsData.totalPoints);
-      setRedemptions(redemptionData);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Gagal memuat katalog hadiah.');
+      if (rewardResult.status === 'fulfilled') {
+        setRewards(rewardResult.value);
+      }
+
+      if (pointsResult.status === 'fulfilled') {
+        setCurrentPoints(pointsResult.value.totalPoints);
+      }
+
+      if (redemptionResult.status === 'fulfilled') {
+        setRedemptions(redemptionResult.value);
+      }
+
+      if (
+        rewardResult.status === 'rejected' &&
+        pointsResult.status === 'rejected' &&
+        redemptionResult.status === 'rejected'
+      ) {
+        toast.error('Gagal memuat seluruh data hadiah.');
+      }
     } finally {
       setLoading(false);
     }
@@ -164,12 +178,12 @@ export default function RewardsPage() {
 
             <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white border-0">
               <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="text-green-100 text-sm mb-1">Poin Anda Saat Ini</p>
                     <div className="flex items-center gap-2">
                       <Coins className="w-8 h-8" />
-                      <p className="text-4xl font-bold">{currentPoints.toLocaleString('id-ID')}</p>
+                      <p className="text-3xl font-bold sm:text-4xl">{currentPoints.toLocaleString('id-ID')}</p>
                     </div>
                     <p className="text-green-100 text-sm mt-2">
                       Sekitar Rp {(currentPoints / POINTS_TO_RUPIAH_DIVISOR).toLocaleString('id-ID')}
@@ -177,7 +191,7 @@ export default function RewardsPage() {
                   </div>
                   <div className="text-left md:text-right">
                     <p className="text-green-100 text-sm">Permintaan Aktif</p>
-                    <p className="text-3xl font-bold">{pendingRedemptions.length}</p>
+                    <p className="text-2xl font-bold sm:text-3xl">{pendingRedemptions.length}</p>
                     <p className="text-green-100 text-xs mt-1">
                       Pending atau sudah disetujui admin
                     </p>
@@ -269,8 +283,8 @@ export default function RewardsPage() {
               ) : (
                 <div className="space-y-3">
                   {redemptions.slice(0, 5).map((redemption) => (
-                    <div key={redemption.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
+                    <div key={redemption.id} className="flex flex-col gap-3 rounded-lg bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
                         <div className="font-semibold text-gray-900">{redemption.rewardName}</div>
                         <div className="text-sm text-gray-600">
                           {redemption.quantity}x - {redemption.pointsUsed.toLocaleString('id-ID')} poin
@@ -302,7 +316,7 @@ export default function RewardsPage() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Konfirmasi Penukaran</DialogTitle>
             <DialogDescription>
@@ -327,7 +341,7 @@ export default function RewardsPage() {
             </div>
 
             <div className="bg-green-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
+              <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-gray-600">Total Poin:</span>
                 <div className="flex items-center gap-1">
                   <Coins className="w-4 h-4 text-yellow-500" />
@@ -336,7 +350,7 @@ export default function RewardsPage() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-gray-600">Sisa Poin:</span>
                 <span className="font-semibold">
                   {(currentPoints - (selectedReward?.pointsRequired || 0) * quantity).toLocaleString('id-ID')}
@@ -367,11 +381,11 @@ export default function RewardsPage() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setIsDialogOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleConfirmRedeem} disabled={submitting}>
+            <Button className="w-full sm:w-auto" onClick={handleConfirmRedeem} disabled={submitting}>
               <Check className="w-4 h-4 mr-2" />
               {submitting ? 'Mengirim...' : 'Konfirmasi Penukaran'}
             </Button>

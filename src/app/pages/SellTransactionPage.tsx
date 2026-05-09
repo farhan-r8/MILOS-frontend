@@ -126,7 +126,7 @@ export default function SellTransactionPage() {
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                <h2 className="text-xl font-bold text-gray-900 sm:text-2xl mb-4">
                   Transaksi Berhasil Diajukan
                 </h2>
                 <p className="text-gray-600 mb-6">
@@ -135,21 +135,21 @@ export default function SellTransactionPage() {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 text-left max-w-md mx-auto">
                   <h3 className="font-semibold text-gray-900 mb-4">Detail Transaksi</h3>
                   <div className="space-y-3 text-sm text-gray-600">
-                    <div className="flex justify-between">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <span>Jenis Sampah:</span>
                       <span className="font-medium text-gray-900">{successData.wasteType}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <span>Berat:</span>
                       <span className="font-medium text-gray-900">{successData.weight} kg</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <span>Harga/kg:</span>
                       <span className="font-medium text-gray-900">
                         {successData.pointsPerKg.toLocaleString()} poin
                       </span>
                     </div>
-                    <div className="pt-3 border-t flex justify-between">
+                    <div className="pt-3 border-t flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <span className="font-semibold">Total Poin:</span>
                       <span className="font-bold text-green-600 text-lg">
                         {successData.points.toLocaleString()} poin
@@ -175,7 +175,7 @@ export default function SellTransactionPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Jual Sampah</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Jual Sampah</h1>
             <p className="text-gray-600 mt-2">
               Catat transaksi penjualan sampah Anda dan dapatkan poin.
             </p>
@@ -193,7 +193,7 @@ export default function SellTransactionPage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
                     <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-blue-800">
                       <p className="font-semibold mb-1">Info Nasabah:</p>
@@ -238,7 +238,7 @@ export default function SellTransactionPage() {
 
                   {selectedWaste && formData.weight && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <span className="text-sm text-gray-600">Estimasi Poin yang Didapat</span>
                         <Award className="w-5 h-5 text-green-600" />
                       </div>
@@ -262,12 +262,12 @@ export default function SellTransactionPage() {
                     />
                   </div>
 
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex flex-col gap-3 pt-4 sm:flex-row">
                     <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700" disabled={submitting}>
                       <Package className="w-4 h-4 mr-2" />
                       {submitting ? 'Mengirim...' : 'Ajukan Transaksi'}
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => navigate('/dashboard')}>
+                    <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/dashboard')}>
                       Batal
                     </Button>
                   </div>

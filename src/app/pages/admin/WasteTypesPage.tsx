@@ -148,7 +148,7 @@ export default function WasteTypesPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Kelola Jenis Sampah</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Kelola Jenis Sampah</h1>
             <p className="text-gray-600 mt-2">Atur jenis sampah dan poin per satuan dari backend.</p>
           </div>
 
@@ -156,44 +156,44 @@ export default function WasteTypesPage() {
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Total Jenis</CardDescription>
-                <CardTitle className="text-3xl">{stats.total}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{stats.total}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Jenis Aktif</CardDescription>
-                <CardTitle className="text-3xl text-green-600">{stats.active}</CardTitle>
+                <CardTitle className="text-2xl text-green-600 sm:text-3xl">{stats.active}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Jenis Nonaktif</CardDescription>
-                <CardTitle className="text-3xl">{stats.total - stats.active}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{stats.total - stats.active}</CardTitle>
               </CardHeader>
             </Card>
             <Card className="bg-green-50 border-green-200">
               <CardHeader className="pb-3">
                 <CardDescription className="text-green-700">Rata-rata Poin</CardDescription>
-                <CardTitle className="text-3xl text-green-600">{stats.average.toLocaleString()}</CardTitle>
+                <CardTitle className="text-2xl text-green-600 sm:text-3xl">{stats.average.toLocaleString()}</CardTitle>
               </CardHeader>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <CardTitle>Daftar Jenis Sampah</CardTitle>
                   <CardDescription>Data asli jenis sampah yang tersimpan.</CardDescription>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-green-600 hover:bg-green-700" onClick={resetForm}>
+                    <Button className="w-full bg-green-600 hover:bg-green-700 sm:w-auto" onClick={resetForm}>
                       <Plus className="w-4 h-4 mr-2" />
                       Tambah Jenis Sampah
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
                     <form onSubmit={handleSubmit}>
                       <DialogHeader>
                         <DialogTitle>{editingWasteType ? 'Edit Jenis Sampah' : 'Tambah Jenis Sampah Baru'}</DialogTitle>
@@ -232,11 +232,11 @@ export default function WasteTypesPage() {
                         </div>
                       </div>
 
-                      <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      <DialogFooter className="flex-col gap-3 sm:flex-row">
+                        <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => setIsDialogOpen(false)}>
                           Batal
                         </Button>
-                        <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                        <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 sm:w-auto">
                           {editingWasteType ? 'Simpan Perubahan' : 'Tambah Jenis Sampah'}
                         </Button>
                       </DialogFooter>
@@ -246,7 +246,7 @@ export default function WasteTypesPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="hidden md:block overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -307,6 +307,55 @@ export default function WasteTypesPage() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+              <div className="space-y-4 p-4 md:hidden">
+                {loading ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                    Memuat jenis sampah...
+                  </div>
+                ) : wasteTypes.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                    Belum ada jenis sampah.
+                  </div>
+                ) : (
+                  wasteTypes.map((wasteType) => (
+                    <div key={wasteType.id} className="rounded-xl border border-gray-200 p-4 shadow-sm">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 font-semibold text-gray-900">
+                            <Recycle className="h-4 w-4 shrink-0 text-green-600" />
+                            <span className="truncate">{wasteType.nama}</span>
+                          </div>
+                          <div className="mt-1 text-sm text-gray-600">Satuan: {wasteType.satuan}</div>
+                        </div>
+                        <Badge
+                          className={
+                            wasteType.isAktif
+                              ? 'bg-green-100 text-green-700 border-green-200 cursor-pointer'
+                              : 'bg-gray-100 text-gray-700 border-gray-200 cursor-pointer'
+                          }
+                          onClick={() => toggleStatus(wasteType)}
+                        >
+                          {wasteType.isAktif ? 'Aktif' : 'Nonaktif'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Award className="h-4 w-4 text-green-600" />
+                        <span className="font-semibold text-green-600">{wasteType.poinPerSatuan.toLocaleString()} poin/{wasteType.satuan}</span>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <Button variant="ghost" size="sm" className="flex-1 border" onClick={() => handleEdit(wasteType)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button variant="ghost" size="sm" className="flex-1 border" onClick={() => handleDelete(wasteType.id)}>
+                          <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                          Hapus
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

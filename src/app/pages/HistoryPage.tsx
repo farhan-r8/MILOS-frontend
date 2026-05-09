@@ -89,31 +89,31 @@ export default function HistoryPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Riwayat Transaksi</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Riwayat Transaksi</h1>
             <p className="text-gray-600 mt-2">
               Lihat semua riwayat penyerahan sampah dan perolehan poin Anda.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="mb-8 grid gap-6 md:grid-cols-3">
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Total Transaksi</CardDescription>
-                <CardTitle className="text-3xl">{filteredTransactions.length}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{filteredTransactions.length}</CardTitle>
               </CardHeader>
             </Card>
 
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Total Berat</CardDescription>
-                <CardTitle className="text-3xl">{totalWeight.toFixed(1)} kg</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{totalWeight.toFixed(1)} kg</CardTitle>
               </CardHeader>
             </Card>
 
             <Card className="bg-green-50 border-green-200">
               <CardHeader className="pb-3">
                 <CardDescription className="text-green-700">Total Poin</CardDescription>
-                <CardTitle className="text-3xl text-green-600">{totalPoints.toLocaleString()}</CardTitle>
+                <CardTitle className="text-2xl text-green-600 sm:text-3xl">{totalPoints.toLocaleString()}</CardTitle>
                 <div className="text-xs text-green-700">Hanya dari transaksi terverifikasi</div>
               </CardHeader>
             </Card>
@@ -132,7 +132,7 @@ export default function HistoryPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col gap-4 md:flex-row">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
@@ -144,7 +144,7 @@ export default function HistoryPage() {
                 </div>
 
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="md:w-[220px]">
+                  <SelectTrigger className="w-full md:w-[220px]">
                     <Filter className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="Jenis Sampah" />
                   </SelectTrigger>
@@ -159,7 +159,7 @@ export default function HistoryPage() {
                 </Select>
 
                 <Select value={filterMethod} onValueChange={setFilterMethod}>
-                  <SelectTrigger className="md:w-[180px]">
+                  <SelectTrigger className="w-full md:w-[180px]">
                     <Package className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="Metode" />
                   </SelectTrigger>
@@ -175,7 +175,79 @@ export default function HistoryPage() {
 
           <Card>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="space-y-4 p-4 md:hidden">
+                {loading ? (
+                  <div className="py-8 text-center text-sm text-gray-500">Memuat riwayat transaksi...</div>
+                ) : filteredTransactions.length === 0 ? (
+                  <div className="py-8 text-center text-sm text-gray-500">Tidak ada transaksi yang ditemukan.</div>
+                ) : (
+                  filteredTransactions.map((transaction) => (
+                    <div key={transaction.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-900">{transaction.id}</div>
+                          <div className="text-sm text-gray-600">{transaction.wasteType}</div>
+                        </div>
+                        <Badge
+                          className={
+                            transaction.status === 'verified'
+                              ? 'bg-green-100 text-green-700 border-green-200'
+                              : transaction.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                              : 'bg-red-100 text-red-700 border-red-200'
+                          }
+                        >
+                          {transaction.status === 'verified'
+                            ? 'Terverifikasi'
+                            : transaction.status === 'pending'
+                            ? 'Pending'
+                            : 'Ditolak'}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span>
+                            {new Date(transaction.date).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span>Berat</span>
+                          <span className="font-medium text-gray-900">{transaction.weight.toFixed(1)} kg</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span>Harga/kg</span>
+                          <span className="font-medium text-gray-900">{transaction.pointsPerKg.toLocaleString()} poin</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span>Total Poin</span>
+                          <span className="font-semibold text-green-600">+{transaction.totalPoints.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span>Metode</span>
+                          <Badge
+                            variant="outline"
+                            className={
+                              transaction.method === 'Pickup'
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : 'bg-purple-50 text-purple-700 border-purple-200'
+                            }
+                          >
+                            {transaction.method}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="hidden overflow-x-auto md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>

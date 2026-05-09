@@ -16,7 +16,7 @@ import { buildAchievements, getLevelConfig, type AchievementItem } from '../lib/
 const monthFormatter = new Intl.DateTimeFormat('id-ID', { month: 'short' });
 
 export default function PointsPage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [rewards, setRewards] = useState<RewardItem[]>([]);
@@ -33,20 +33,32 @@ export default function PointsPage() {
       }
 
       try {
-        const [transactionData, pointsData, rewardData] = await Promise.all([
+        const [transactionResult, pointsResult, rewardResult] = await Promise.allSettled([
           fetchTransactions(user.id),
-          fetchUserPoints(user.id),
+          fetchUserPoints(user.id, token),
           fetchRewards(),
         ]);
 
         if (isMounted) {
-          setTransactions(transactionData);
-          setCurrentPoints(pointsData.totalPoints);
-          setRewards(rewardData);
-        }
-      } catch (error) {
-        if (isMounted) {
-          toast.error(error instanceof Error ? error.message : 'Gagal memuat data poin.');
+          if (transactionResult.status === 'fulfilled') {
+            setTransactions(transactionResult.value);
+          }
+
+          if (pointsResult.status === 'fulfilled') {
+            setCurrentPoints(pointsResult.value.totalPoints);
+          }
+
+          if (rewardResult.status === 'fulfilled') {
+            setRewards(rewardResult.value);
+          }
+
+          if (
+            transactionResult.status === 'rejected' &&
+            pointsResult.status === 'rejected' &&
+            rewardResult.status === 'rejected'
+          ) {
+            toast.error('Gagal memuat seluruh data poin.');
+          }
         }
       } finally {
         if (isMounted) {
@@ -59,7 +71,7 @@ export default function PointsPage() {
     return () => {
       isMounted = false;
     };
-  }, [user?.id]);
+  }, [token, user?.id]);
 
   const currentMonthPoints = useMemo(() => {
     const now = new Date();
@@ -129,7 +141,7 @@ export default function PointsPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Poin & Reward</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Poin & Reward</h1>
             <p className="text-gray-600 mt-2">
               Pantau perkembangan poin dan tukarkan dengan hadiah menarik
             </p>
@@ -139,11 +151,11 @@ export default function PointsPage() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="mb-8 grid gap-6 md:grid-cols-4">
             <Card className="md:col-span-2 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
               <CardHeader>
                 <CardDescription className="text-green-50">Poin Anda Saat Ini</CardDescription>
-                <CardTitle className="text-5xl">{currentPoints.toLocaleString()}</CardTitle>
+                <CardTitle className="text-3xl sm:text-4xl lg:text-5xl">{currentPoints.toLocaleString()}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2 text-green-50">
@@ -159,10 +171,10 @@ export default function PointsPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start gap-3">
                   <div>
                     <CardDescription>Level Anda</CardDescription>
-                    <CardTitle className="text-3xl mt-2">{level.label}</CardTitle>
+                    <CardTitle className="mt-2 text-2xl sm:text-3xl">{level.label}</CardTitle>
                   </div>
                   <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                     <Trophy className="w-6 h-6 text-yellow-600" />
@@ -171,7 +183,7 @@ export default function PointsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-gray-600">
                       {level.next ? `Progress ke ${level.next}` : 'Level tertinggi tercapai'}
                     </span>
@@ -187,10 +199,10 @@ export default function PointsPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start gap-3">
                   <div>
                     <CardDescription>Achievement</CardDescription>
-                    <CardTitle className="text-3xl mt-2">
+                    <CardTitle className="mt-2 text-2xl sm:text-3xl">
                       {unlockedAchievements}/{achievements.length}
                     </CardTitle>
                   </div>
@@ -256,7 +268,7 @@ export default function PointsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {achievements.map((achievement) => (
                   <div
                     key={achievement.id}
@@ -304,7 +316,7 @@ export default function PointsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {rewards.map((reward) => (
                   <div
                     key={reward.id}
@@ -326,14 +338,14 @@ export default function PointsPage() {
                       <Gift className={`w-8 h-8 ${reward.stock > 0 ? 'text-green-600' : 'text-gray-400'}`} />
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <span className="text-sm text-gray-600">
                         Stok: {reward.stock > 0 ? reward.stock : 'Habis'}
                       </span>
                       <Button
                         size="sm"
                         disabled={reward.stock < 1 || currentPoints < reward.pointsRequired}
-                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300"
+                        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 sm:w-auto"
                         onClick={() => navigate(`/rewards?redeem=${reward.id}`)}
                       >
                         {reward.stock < 1

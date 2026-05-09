@@ -123,7 +123,7 @@ export default function SchedulesPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Kelola Jadwal Pengambilan</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Kelola Jadwal Pengambilan</h1>
             <p className="text-gray-600 mt-2">Atur jadwal pengambilan sampah per wilayah.</p>
           </div>
 
@@ -131,13 +131,13 @@ export default function SchedulesPage() {
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Total Jadwal</CardDescription>
-                <CardTitle className="text-3xl">{schedules.length}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{schedules.length}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Jadwal Aktif</CardDescription>
-                <CardTitle className="text-3xl text-green-600">
+                <CardTitle className="text-2xl text-green-600 sm:text-3xl">
                   {schedules.filter((item) => item.is_aktif === 1).length}
                 </CardTitle>
               </CardHeader>
@@ -145,32 +145,32 @@ export default function SchedulesPage() {
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Wilayah Terlayani</CardDescription>
-                <CardTitle className="text-3xl">{new Set(schedules.map((item) => item.wilayah)).size}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{new Set(schedules.map((item) => item.wilayah)).size}</CardTitle>
               </CardHeader>
             </Card>
             <Card className="bg-green-50 border-green-200">
               <CardHeader className="pb-3">
                 <CardDescription className="text-green-700">Hari Tersedia</CardDescription>
-                <CardTitle className="text-3xl text-green-600">{daysOfWeek.length}</CardTitle>
+                <CardTitle className="text-2xl text-green-600 sm:text-3xl">{daysOfWeek.length}</CardTitle>
               </CardHeader>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <CardTitle>Daftar Jadwal</CardTitle>
                   <CardDescription>Data jadwal pengambilan dari backend.</CardDescription>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-green-600 hover:bg-green-700" onClick={resetForm}>
+                    <Button className="w-full bg-green-600 hover:bg-green-700 sm:w-auto" onClick={resetForm}>
                       <Plus className="w-4 h-4 mr-2" />
                       Tambah Jadwal
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
                     <form onSubmit={handleSubmit}>
                       <DialogHeader>
                         <DialogTitle>{editingSchedule ? 'Edit Jadwal' : 'Tambah Jadwal Baru'}</DialogTitle>
@@ -224,11 +224,11 @@ export default function SchedulesPage() {
                         </div>
                       </div>
 
-                      <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      <DialogFooter className="flex-col gap-3 sm:flex-row">
+                        <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => setIsDialogOpen(false)}>
                           Batal
                         </Button>
-                        <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                        <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 sm:w-auto">
                           {editingSchedule ? 'Simpan Perubahan' : 'Tambah Jadwal'}
                         </Button>
                       </DialogFooter>
@@ -238,7 +238,7 @@ export default function SchedulesPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="hidden md:block overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -297,6 +297,54 @@ export default function SchedulesPage() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+              <div className="space-y-4 p-4 md:hidden">
+                {loading ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                    Memuat jadwal...
+                  </div>
+                ) : schedules.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                    Belum ada jadwal.
+                  </div>
+                ) : (
+                  schedules.map((schedule) => (
+                    <div key={schedule.id_jadwal} className="rounded-xl border border-gray-200 p-4 shadow-sm">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 font-semibold text-gray-900">
+                            <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
+                            <span className="truncate">{schedule.wilayah}</span>
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                            <span className="inline-flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              {schedule.hari}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              {String(schedule.jam).slice(0, 5)} WIB
+                            </span>
+                          </div>
+                        </div>
+                        <Badge className={schedule.is_aktif === 1 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-700 border-gray-200'}>
+                          {schedule.is_aktif === 1 ? 'Aktif' : 'Nonaktif'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">{schedule.keterangan || 'Tidak ada keterangan.'}</p>
+                      <div className="mt-4 flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(schedule)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleDelete(schedule.id_jadwal)}>
+                          <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                          Hapus
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

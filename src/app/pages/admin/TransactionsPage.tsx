@@ -125,7 +125,7 @@ export default function TransactionsPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Kelola Transaksi</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Kelola Transaksi</h1>
             <p className="text-gray-600 mt-2">Verifikasi dan kelola semua transaksi nasabah.</p>
           </div>
 
@@ -133,25 +133,25 @@ export default function TransactionsPage() {
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Total Transaksi</CardDescription>
-                <CardTitle className="text-3xl">{stats.total}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{stats.total}</CardTitle>
               </CardHeader>
             </Card>
             <Card className="border-yellow-200 bg-yellow-50">
               <CardHeader className="pb-3">
                 <CardDescription className="text-yellow-700">Pending</CardDescription>
-                <CardTitle className="text-3xl text-yellow-600">{stats.pending}</CardTitle>
+                <CardTitle className="text-2xl text-yellow-600 sm:text-3xl">{stats.pending}</CardTitle>
               </CardHeader>
             </Card>
             <Card className="border-green-200 bg-green-50">
               <CardHeader className="pb-3">
                 <CardDescription className="text-green-700">Terverifikasi</CardDescription>
-                <CardTitle className="text-3xl text-green-600">{stats.verified}</CardTitle>
+                <CardTitle className="text-2xl text-green-600 sm:text-3xl">{stats.verified}</CardTitle>
               </CardHeader>
             </Card>
             <Card className="border-red-200 bg-red-50">
               <CardHeader className="pb-3">
                 <CardDescription className="text-red-700">Ditolak</CardDescription>
-                <CardTitle className="text-3xl text-red-600">{stats.rejected}</CardTitle>
+                <CardTitle className="text-2xl text-red-600 sm:text-3xl">{stats.rejected}</CardTitle>
               </CardHeader>
             </Card>
           </div>
@@ -163,7 +163,7 @@ export default function TransactionsPage() {
                   <CardTitle>Semua Transaksi</CardTitle>
                   <CardDescription>Data nyata transaksi nasabah.</CardDescription>
                 </div>
-                <div className="relative md:w-96">
+                <div className="relative w-full md:w-96">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Cari berdasarkan ID, nasabah, atau jenis sampah..."
@@ -176,7 +176,7 @@ export default function TransactionsPage() {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="all">
-                <TabsList>
+                <TabsList className="h-auto w-full flex-wrap justify-start">
                   <TabsTrigger value="all">Semua ({stats.total})</TabsTrigger>
                   <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
                   <TabsTrigger value="verified">Terverifikasi ({stats.verified})</TabsTrigger>
@@ -203,34 +203,34 @@ export default function TransactionsPage() {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Detail Transaksi</DialogTitle>
             <DialogDescription>Tinjau transaksi sebelum memverifikasi.</DialogDescription>
           </DialogHeader>
           {selectedTransaction && (
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-gray-600">ID</span>
                 <span className="font-semibold">{selectedTransaction.id}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-gray-600">Nasabah</span>
                 <span className="font-semibold">{selectedTransaction.customerName}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-gray-600">Jenis Sampah</span>
                 <span>{selectedTransaction.wasteType}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-gray-600">Berat</span>
                 <span>{selectedTransaction.weight.toFixed(1)} kg</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-gray-600">Poin/kg</span>
                 <span>{selectedTransaction.pointsPerKg.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-gray-600">Total Poin</span>
                 <span className="font-semibold text-green-600">
                   {selectedTransaction.totalPoints.toLocaleString()}
@@ -238,16 +238,16 @@ export default function TransactionsPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+          <DialogFooter className="flex-col gap-3 sm:flex-row">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setDialogOpen(false)}>
               Tutup
             </Button>
             {selectedTransaction?.status === 'pending' && (
               <>
-                <Button variant="outline" onClick={() => selectedTransaction && handleStatusUpdate(selectedTransaction, 'rejected')}>
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => selectedTransaction && handleStatusUpdate(selectedTransaction, 'rejected')}>
                   Tolak
                 </Button>
-                <Button className="bg-green-600 hover:bg-green-700" onClick={() => selectedTransaction && handleStatusUpdate(selectedTransaction, 'verified')}>
+                <Button className="w-full bg-green-600 hover:bg-green-700 sm:w-auto" onClick={() => selectedTransaction && handleStatusUpdate(selectedTransaction, 'verified')}>
                   Verifikasi
                 </Button>
               </>
@@ -271,7 +271,8 @@ function TransactionTable({
   getStatusBadge: (status: TransactionItem['status']) => JSX.Element;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <>
+      <div className="hidden md:block overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -358,5 +359,72 @@ function TransactionTable({
         </TableBody>
       </Table>
     </div>
+    <div className="space-y-4 md:hidden">
+      {loading ? (
+        <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+          Memuat transaksi...
+        </div>
+      ) : transactions.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+          Tidak ada transaksi yang ditemukan.
+        </div>
+      ) : (
+        transactions.map((transaction) => (
+          <div key={transaction.id} className="rounded-xl border border-gray-200 p-4 shadow-sm">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-semibold text-gray-900">{transaction.id}</div>
+                <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
+                  <User className="h-4 w-4 shrink-0 text-gray-400" />
+                  <span className="truncate">{transaction.customerName}</span>
+                </div>
+              </div>
+              {getStatusBadge(transaction.status)}
+            </div>
+            <div className="grid gap-3 text-sm text-gray-600">
+              <div className="flex items-start justify-between gap-3">
+                <span>Tanggal</span>
+                <span className="text-right">
+                  {new Date(transaction.date).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                  })}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span>Jenis Sampah</span>
+                <span className="text-right">{transaction.wasteType}</span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span>Berat</span>
+                <span>{transaction.weight.toFixed(1)} kg</span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span>Poin</span>
+                <span className="font-semibold text-green-600">{transaction.totalPoints.toLocaleString()}</span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span>Metode</span>
+                <Badge
+                  variant="outline"
+                  className={
+                    transaction.method === 'Pickup'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-purple-50 text-purple-700 border-purple-200'
+                  }
+                >
+                  {transaction.method}
+                </Badge>
+              </div>
+            </div>
+            <Button size="sm" variant="outline" className="mt-4 w-full" onClick={() => onOpenDetail(transaction)}>
+              {transaction.status === 'pending' ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+              {transaction.status === 'pending' ? 'Tinjau Transaksi' : 'Lihat Detail'}
+            </Button>
+          </div>
+        ))
+      )}
+    </div>
+    </>
   );
 }

@@ -35,19 +35,33 @@ export default function Dashboard() {
       if (!user?.id || !token) return;
 
       try {
-        const [transactionData, pickupData, pointsData] = await Promise.all([
+        const [transactionResult, pickupResult, pointsResult] = await Promise.allSettled([
           fetchTransactions(user.id),
           fetchPickups(token),
-          fetchUserPoints(user.id),
+          fetchUserPoints(user.id, token),
         ]);
 
         if (isMounted) {
-          setTransactions(transactionData);
-          setPickups(pickupData);
-          setTotalPoints(pointsData.totalPoints);
+          if (transactionResult.status === 'fulfilled') {
+            setTransactions(transactionResult.value);
+          }
+
+          if (pickupResult.status === 'fulfilled') {
+            setPickups(pickupResult.value);
+          }
+
+          if (pointsResult.status === 'fulfilled') {
+            setTotalPoints(pointsResult.value.totalPoints);
+          }
+
+          if (
+            transactionResult.status === 'rejected' &&
+            pickupResult.status === 'rejected' &&
+            pointsResult.status === 'rejected'
+          ) {
+            toast.error('Gagal memuat seluruh data dashboard.');
+          }
         }
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Gagal memuat dashboard.');
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -86,7 +100,7 @@ export default function Dashboard() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Selamat Datang, {user?.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Selamat Datang, {user?.name}</h1>
             <p className="text-gray-600 mt-2">
               Lihat ringkasan aktivitas dan poin Anda di Bank Sampah MILOS.
             </p>
@@ -98,7 +112,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardDescription className="text-green-50">Total Poin</CardDescription>
-                    <CardTitle className="text-3xl mt-2">{totalPoints.toLocaleString()}</CardTitle>
+                    <CardTitle className="mt-2 text-2xl sm:text-3xl">{totalPoints.toLocaleString()}</CardTitle>
                   </div>
                   <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
                     <Award className="w-6 h-6" />
@@ -116,21 +130,21 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Total Transaksi</CardDescription>
-                <CardTitle className="text-3xl">{transactions.length}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{transactions.length}</CardTitle>
               </CardHeader>
             </Card>
 
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Total Sampah</CardDescription>
-                <CardTitle className="text-3xl">{totalWeight.toFixed(1)} kg</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{totalWeight.toFixed(1)} kg</CardTitle>
               </CardHeader>
             </Card>
 
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Transaksi Pending</CardDescription>
-                <CardTitle className="text-3xl">{pendingTransactions}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl">{pendingTransactions}</CardTitle>
               </CardHeader>
             </Card>
           </div>
@@ -138,12 +152,12 @@ export default function Dashboard() {
           <div className="grid lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <CardTitle>Perkembangan Poin</CardTitle>
                     <CardDescription>Ringkasan poin berdasarkan transaksi nyata.</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/history')}>
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/history')}>
                     Detail
                   </Button>
                 </div>
@@ -200,12 +214,12 @@ export default function Dashboard() {
 
             <Card className="lg:col-span-3">
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <CardTitle>Transaksi Terakhir</CardTitle>
                     <CardDescription>Riwayat penyerahan sampah terbaru Anda.</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/history')}>
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/history')}>
                     Lihat Semua
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
@@ -221,13 +235,13 @@ export default function Dashboard() {
                     {recentTransactions.map((transaction) => (
                       <div
                         key={transaction.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                        className="flex flex-col gap-4 rounded-lg bg-gray-50 p-4 transition hover:bg-gray-100 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                             <Recycle className="w-6 h-6 text-green-600" />
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <div className="font-semibold text-gray-900">{transaction.wasteType}</div>
                             <div className="text-sm text-gray-600">
                               {transaction.weight} kg - {new Date(transaction.date).toLocaleDateString('id-ID', {
@@ -238,7 +252,7 @@ export default function Dashboard() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right">
                           <div className="font-bold text-green-600">
                             +{transaction.totalPoints.toLocaleString()} poin
                           </div>

@@ -200,18 +200,18 @@ export default function PickupPage() {
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Permintaan Pickup Berhasil</h2>
+                <h2 className="text-xl font-bold text-gray-900 sm:text-2xl mb-4">Permintaan Pickup Berhasil</h2>
                 <p className="text-gray-600 mb-6">
                   Permintaan pickup Anda telah dikirim dan akan diproses admin.
                 </p>
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-left">
                   <h3 className="font-semibold text-gray-900 mb-3">Detail Pickup</h3>
                   <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex gap-2">
+                    <div className="flex items-start gap-2">
                       <Package className="w-4 h-4 mt-0.5" />
                       <span>Jenis: {selectedWaste?.label}</span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 mt-0.5" />
                       <span>
                         Tanggal: {new Date(formData.pickupDate).toLocaleDateString('id-ID', {
@@ -222,11 +222,11 @@ export default function PickupPage() {
                         })}
                       </span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-start gap-2">
                       <Clock className="w-4 h-4 mt-0.5" />
                       <span>Waktu: {selectedSchedule ? String(selectedSchedule.jam).slice(0, 5) : '-'} WIB</span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 mt-0.5" />
                       <span>Wilayah jadwal: {selectedSchedule?.wilayah || '-'}</span>
                     </div>
@@ -250,7 +250,7 @@ export default function PickupPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Ajukan Pickup</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Ajukan Pickup</h1>
             <p className="text-gray-600 mt-2">
               Pilih tanggal sesuai hari layanan dan gunakan jadwal pickup yang sudah diatur admin.
             </p>
@@ -387,11 +387,11 @@ export default function PickupPage() {
                     />
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row">
                     <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700" disabled={submitting}>
                       {submitting ? 'Mengirim...' : 'Ajukan Pickup'}
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => navigate('/dashboard')}>
+                    <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/dashboard')}>
                       Batal
                     </Button>
                   </div>

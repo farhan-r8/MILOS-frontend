@@ -162,17 +162,17 @@ export default function AdminRewardsPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                   <Gift className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Kelola Barang Hadiah</h1>
+                  <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Kelola Barang Hadiah</h1>
                   <p className="text-gray-600">Atur katalog barang yang dapat ditukar dengan poin</p>
                 </div>
               </div>
-              <Button onClick={handleAddClick}>
+              <Button className="w-full sm:w-auto" onClick={handleAddClick}>
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Barang
               </Button>
@@ -186,7 +186,7 @@ export default function AdminRewardsPage() {
                 <CardContent>
                   <div className="flex items-center gap-2">
                     <Gift className="w-5 h-5 text-green-600" />
-                    <p className="text-3xl font-bold text-gray-900">{totalItems}</p>
+                    <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{totalItems}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -198,7 +198,7 @@ export default function AdminRewardsPage() {
                 <CardContent>
                   <div className="flex items-center gap-2">
                     <Package className="w-5 h-5 text-blue-600" />
-                    <p className="text-3xl font-bold text-gray-900">{totalStock}</p>
+                    <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{totalStock}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -208,7 +208,7 @@ export default function AdminRewardsPage() {
                   <CardTitle className="text-sm font-medium text-gray-600">Kategori</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-gray-900 sm:text-3xl">
                     {new Set(activeRewards.map((reward) => reward.category)).size}
                   </p>
                 </CardContent>
@@ -218,6 +218,7 @@ export default function AdminRewardsPage() {
 
           <Card>
             <CardContent className="p-0">
+              <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -284,13 +285,58 @@ export default function AdminRewardsPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
+              <div className="space-y-4 p-4 md:hidden">
+                {loading ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                    Memuat katalog hadiah...
+                  </div>
+                ) : activeRewards.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                    Belum ada barang.
+                  </div>
+                ) : (
+                  activeRewards.map((reward) => (
+                    <div key={reward.id} className="rounded-xl border border-gray-200 p-4 shadow-sm">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-900">{reward.name}</div>
+                          <div className="mt-1">
+                            <Badge variant="outline">{reward.category}</Badge>
+                          </div>
+                        </div>
+                        <Badge variant={reward.stock < 10 ? 'destructive' : 'default'}>
+                          Stok {reward.stock}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Coins className="h-4 w-4 text-yellow-500" />
+                          <span className="font-semibold text-gray-900">{reward.pointsRequired.toLocaleString('id-ID')} poin</span>
+                        </div>
+                        <p>{reward.description || 'Tidak ada deskripsi.'}</p>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditClick(reward)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleDeleteClick(reward)}>
+                          <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                          Hapus
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingReward ? 'Edit Barang' : 'Tambah Barang Baru'}</DialogTitle>
             <DialogDescription>
@@ -368,11 +414,11 @@ export default function AdminRewardsPage() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+          <DialogFooter className="flex-col gap-3 sm:flex-row">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setIsDialogOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
+            <Button className="w-full sm:w-auto" onClick={handleSubmit} disabled={submitting}>
               {submitting ? 'Menyimpan...' : editingReward ? 'Perbarui' : 'Tambah'}
             </Button>
           </DialogFooter>

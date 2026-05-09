@@ -135,12 +135,12 @@ export default function AdminRedemptionsPage() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="mb-4 flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Permintaan Penukaran</h1>
+                <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Permintaan Penukaran</h1>
                 <p className="text-gray-600">Kelola permintaan penukaran poin dengan barang</p>
               </div>
             </div>
@@ -152,7 +152,7 @@ export default function AdminRedemptionsPage() {
                     <Clock className="w-5 h-5 text-yellow-600" />
                     <div>
                       <p className="text-sm text-gray-600">Menunggu</p>
-                      <p className="text-3xl font-bold text-gray-900">{pendingCount}</p>
+                      <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{pendingCount}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -164,7 +164,7 @@ export default function AdminRedemptionsPage() {
                     <Package className="w-5 h-5 text-blue-600" />
                     <div>
                       <p className="text-sm text-gray-600">Disetujui</p>
-                      <p className="text-3xl font-bold text-gray-900">{approvedCount}</p>
+                      <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{approvedCount}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -176,7 +176,7 @@ export default function AdminRedemptionsPage() {
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <div>
                       <p className="text-sm text-gray-600">Selesai</p>
-                      <p className="text-3xl font-bold text-gray-900">{completedCount}</p>
+                      <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{completedCount}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -188,7 +188,7 @@ export default function AdminRedemptionsPage() {
                     <XCircle className="w-5 h-5 text-red-600" />
                     <div>
                       <p className="text-sm text-gray-600">Ditolak</p>
-                      <p className="text-3xl font-bold text-gray-900">{rejectedCount}</p>
+                      <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{rejectedCount}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -197,7 +197,7 @@ export default function AdminRedemptionsPage() {
           </div>
 
           <Tabs defaultValue="all" className="mb-6">
-            <TabsList>
+            <TabsList className="h-auto w-full flex-wrap justify-start">
               <TabsTrigger value="all" onClick={() => setFilterStatus('all')}>
                 Semua ({redemptions.length})
               </TabsTrigger>
@@ -215,6 +215,7 @@ export default function AdminRedemptionsPage() {
 
           <Card>
             <CardContent className="p-0">
+              <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -271,13 +272,63 @@ export default function AdminRedemptionsPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
+              <div className="space-y-4 p-4 md:hidden">
+                {loading ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                    Memuat penukaran hadiah...
+                  </div>
+                ) : filteredRedemptions.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                    Tidak ada permintaan penukaran.
+                  </div>
+                ) : (
+                  filteredRedemptions.map((redemption) => (
+                    <div key={redemption.id} className="rounded-xl border border-gray-200 p-4 shadow-sm">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-900">{redemption.rewardName}</div>
+                          <div className="mt-1 text-sm text-gray-600">{redemption.userName}</div>
+                        </div>
+                        {getStatusBadge(redemption.status)}
+                      </div>
+                      <div className="grid gap-2 text-sm text-gray-600">
+                        <div className="flex items-start justify-between gap-3">
+                          <span>Tanggal</span>
+                          <span className="text-right">
+                            {new Date(redemption.requestDate).toLocaleDateString('id-ID', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-start justify-between gap-3">
+                          <span>Jumlah</span>
+                          <span>{redemption.quantity}x</span>
+                        </div>
+                        <div className="flex items-start justify-between gap-3">
+                          <span>Poin</span>
+                          <span className="font-semibold text-green-700">
+                            {redemption.pointsUsed.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => handleViewDetails(redemption)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Lihat Detail
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detail Permintaan Penukaran</DialogTitle>
             <DialogDescription>
@@ -292,7 +343,7 @@ export default function AdminRedemptionsPage() {
                 {getStatusBadge(selectedRedemption.status)}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Nama Nasabah</p>
                   <p className="font-medium">{selectedRedemption.userName}</p>
@@ -303,7 +354,7 @@ export default function AdminRedemptionsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Barang</p>
                   <p className="font-medium">{selectedRedemption.rewardName}</p>
@@ -337,7 +388,7 @@ export default function AdminRedemptionsPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid gap-4 text-sm sm:grid-cols-2">
                 <div>
                   <p className="text-gray-600 mb-1">Tanggal Permintaan</p>
                   <p className="font-medium">
@@ -356,32 +407,33 @@ export default function AdminRedemptionsPage() {
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-3 sm:flex-row">
             {selectedRedemption?.status === 'pending' && (
               <>
                 <Button
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => handleStatusUpdate('rejected')}
                   disabled={submitting}
                 >
                   <X className="w-4 h-4 mr-2" />
                   Tolak
                 </Button>
-                <Button onClick={() => handleStatusUpdate('approved')} disabled={submitting}>
+                <Button className="w-full sm:w-auto" onClick={() => handleStatusUpdate('approved')} disabled={submitting}>
                   <Check className="w-4 h-4 mr-2" />
                   Setujui
                 </Button>
               </>
             )}
             {selectedRedemption?.status === 'approved' && (
-              <Button onClick={() => handleStatusUpdate('completed')} disabled={submitting}>
+              <Button className="w-full sm:w-auto" onClick={() => handleStatusUpdate('completed')} disabled={submitting}>
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Tandai Selesai
               </Button>
             )}
             {(selectedRedemption?.status === 'completed' ||
               selectedRedemption?.status === 'rejected') && (
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => setIsDialogOpen(false)}>
                 Tutup
               </Button>
             )}
