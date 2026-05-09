@@ -173,8 +173,10 @@ export async function fetchTransactions(userId?: string) {
   return apiRequest<TransactionItem[]>(query);
 }
 
-export async function fetchUserPoints(userId: string) {
-  return apiRequest<UserPointsResponse>(`/users/${encodeURIComponent(userId)}/points`);
+export async function fetchUserPoints(userId: string, token?: string | null) {
+  return apiRequest<UserPointsResponse>(`/users/${encodeURIComponent(userId)}/points`, {
+    token,
+  });
 }
 
 export async function fetchRewards() {
