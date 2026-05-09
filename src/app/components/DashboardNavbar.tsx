@@ -35,14 +35,14 @@ export function DashboardNavbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex h-16 items-center justify-between gap-3">
           {/* Logo */}
-          <Link to={isAdmin ? '/admin' : '/dashboard'} className="flex items-center gap-2">
+          <Link to={isAdmin ? '/admin' : '/dashboard'} className="flex min-w-0 items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
               <Leaf className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <div className="font-bold text-xl text-green-700">MILOS</div>
+            <div className="min-w-0">
+              <div className="truncate font-bold text-lg text-green-700 sm:text-xl">MILOS</div>
               <div className="text-xs text-gray-600 hidden sm:block">
                 {isAdmin ? 'Panel Pengurus' : 'Portal Nasabah'}
               </div>
@@ -50,7 +50,7 @@ export function DashboardNavbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4 lg:gap-6">
             {isAdmin ? (
               <>
                 <Link to="/admin" className={navLinkClass('/admin')}>
@@ -98,7 +98,7 @@ export function DashboardNavbar() {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
+                <Button variant="ghost" className="flex items-center gap-2 px-2 lg:px-3">
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-green-700" />
                   </div>
@@ -130,7 +130,7 @@ export function DashboardNavbar() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t py-4 md:hidden">
             <div className="flex flex-col gap-4">
               {isAdmin ? (
                 <>

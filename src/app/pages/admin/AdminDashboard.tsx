@@ -146,7 +146,7 @@ export default function AdminDashboard() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard Admin</h1>
             <p className="text-gray-600 mt-2">Ringkasan dan statistik Bank Sampah MILOS.</p>
           </div>
 
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardDescription>Total Nasabah</CardDescription>
-                    <CardTitle className="text-3xl mt-2">
+                    <CardTitle className="mt-2 text-2xl sm:text-3xl">
                       {users.filter((item) => item.role === 'nasabah').length}
                     </CardTitle>
                   </div>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardDescription>Total Transaksi</CardDescription>
-                    <CardTitle className="text-3xl mt-2">{summary?.total_transaksi ?? 0}</CardTitle>
+                    <CardTitle className="mt-2 text-2xl sm:text-3xl">{summary?.total_transaksi ?? 0}</CardTitle>
                   </div>
                   <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                     <Package className="w-6 h-6 text-green-600" />
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardDescription>Sampah Terkumpul</CardDescription>
-                    <CardTitle className="text-3xl mt-2">
+                    <CardTitle className="mt-2 text-2xl sm:text-3xl">
                       {(summary?.total_berat ?? 0).toLocaleString()} kg
                     </CardTitle>
                   </div>
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardDescription className="text-orange-700">Pickup Pending</CardDescription>
-                    <CardTitle className="text-3xl mt-2 text-orange-600">{pendingPickups.length}</CardTitle>
+                    <CardTitle className="mt-2 text-2xl text-orange-600 sm:text-3xl">{pendingPickups.length}</CardTitle>
                   </div>
                   <div className="w-12 h-12 bg-orange-200 rounded-lg flex items-center justify-center">
                     <Clock className="w-6 h-6 text-orange-700" />
@@ -270,9 +270,9 @@ export default function AdminDashboard() {
                     <div className="text-center py-8 text-gray-500">Tidak ada permintaan pickup pending.</div>
                   ) : (
                     pendingPickups.map((pickup) => (
-                        <div key={pickup.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
+                        <div key={pickup.id} className="rounded-lg bg-gray-50 p-4 transition hover:bg-gray-100">
+                          <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
                               <div className="font-semibold text-gray-900">{pickup.id}</div>
                               <div className="text-sm text-gray-600">{pickup.customer}</div>
                             </div>
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
                             {pickup.wasteType} - ~{pickup.estimatedWeight} kg
                           </div>
                         </div>
-                        <div className="flex gap-2 mt-3">
+                        <div className="mt-3 flex gap-2">
                           <Button size="sm" variant="outline" className="flex-1" onClick={() => handleShowDetail(pickup)}>
                             Tinjau & Proses
                           </Button>
@@ -323,12 +323,12 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {recentTransactions.slice(0, 5).map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div key={transaction.id} className="flex flex-col gap-4 rounded-lg bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                           <Recycle className="w-5 h-5 text-green-600" />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <div className="font-semibold text-gray-900">{transaction.id}</div>
                           <div className="text-sm text-gray-600">
                             {transaction.customerName} - {transaction.wasteType}
@@ -359,7 +359,7 @@ export default function AdminDashboard() {
       </div>
 
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl">
             <DialogHeader>
             <DialogTitle>Tinjau Permintaan Pickup</DialogTitle>
               <DialogDescription>Periksa detail nasabah dan setujui pickup setelah data terasa sesuai.</DialogDescription>
@@ -388,7 +388,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>{selectedPickup.phone || '-'}</div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <div className="text-sm text-gray-600">Tanggal</div>
                   <div>
@@ -423,12 +423,12 @@ export default function AdminDashboard() {
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
+            <Button className="w-full sm:w-auto" variant="outline" onClick={() => setShowDetailDialog(false)}>
               Tutup
             </Button>
             {selectedPickup && (
               <Button
-                className="bg-green-600 hover:bg-green-700"
+                className="w-full bg-green-600 hover:bg-green-700 sm:w-auto"
                 disabled={selectedPickup.status !== 'pending'}
                 onClick={async () => {
                   await handleAcceptPickup(selectedPickup);

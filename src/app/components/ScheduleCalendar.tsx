@@ -150,13 +150,13 @@ export function ScheduleCalendar() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Kalender Jadwal Pengambilan</CardTitle>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-xl sm:text-2xl">Kalender Jadwal Pengambilan</CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={previousMonth}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <div className="text-sm font-semibold min-w-32 text-center">
+            <div className="min-w-28 text-center text-sm font-semibold sm:min-w-32">
               {monthNames[month]} {year}
             </div>
             <Button variant="outline" size="sm" onClick={nextMonth}>
@@ -181,15 +181,19 @@ export function ScheduleCalendar() {
               ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-2 mb-2">
-              {dayNames.map((day) => (
-                <div key={day} className="text-center text-sm font-semibold text-gray-600 p-2">
-                  {day}
+            <div className="overflow-x-auto pb-2">
+              <div className="min-w-[640px]">
+                <div className="grid grid-cols-7 gap-2 mb-2">
+                  {dayNames.map((day) => (
+                    <div key={day} className="p-2 text-center text-xs font-semibold text-gray-600 sm:text-sm">
+                      {day}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-7 gap-2">
-              {renderCalendarDays()}
+                <div className="grid grid-cols-7 gap-2">
+                  {renderCalendarDays()}
+                </div>
+              </div>
             </div>
           </>
         )}

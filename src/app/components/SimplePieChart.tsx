@@ -51,8 +51,8 @@ export function SimplePieChart({ data }: SimplePieChartProps) {
   };
 
   return (
-    <div className="w-full h-[250px] flex items-center justify-center">
-      <div className="relative" style={{ width: '250px', height: '250px' }}>
+    <div className="flex h-auto w-full flex-col items-center justify-center gap-6 sm:h-[250px] sm:flex-row sm:items-center sm:justify-center">
+      <div className="relative h-[220px] w-[220px] sm:h-[250px] sm:w-[250px]">
         {/* SVG Pie Chart */}
         <svg viewBox="0 0 200 200" className="w-full h-full">
           {segments.map((segment, index) => (
@@ -65,24 +65,24 @@ export function SimplePieChart({ data }: SimplePieChartProps) {
             </g>
           ))}
         </svg>
+      </div>
 
-        {/* Legend */}
-        <div className="absolute -right-4 top-1/2 -translate-y-1/2 translate-x-full space-y-2 min-w-[120px]">
-          {segments.map((segment, index) => (
-            <div key={`legend-${index}`} className="flex items-center gap-2 text-sm group cursor-pointer">
-              <div
-                className="w-3 h-3 rounded-sm transition-transform group-hover:scale-110"
-                style={{ backgroundColor: segment.color }}
-              />
-              <div className="flex-1">
-                <div className="text-gray-700 font-medium">{segment.name}</div>
-                <div className="text-gray-500 text-xs">
-                  {(segment.percentage * 100).toFixed(0)}%
-                </div>
+      {/* Legend */}
+      <div className="grid w-full max-w-md grid-cols-1 gap-2 sm:max-w-[180px]">
+        {segments.map((segment, index) => (
+          <div key={`legend-${index}`} className="flex items-center gap-2 text-sm group cursor-pointer">
+            <div
+              className="w-3 h-3 rounded-sm transition-transform group-hover:scale-110"
+              style={{ backgroundColor: segment.color }}
+            />
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-medium text-gray-700">{segment.name}</div>
+              <div className="text-xs text-gray-500">
+                {(segment.percentage * 100).toFixed(0)}%
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
