@@ -123,9 +123,9 @@ export default function RewardsPage() {
     <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-10 text-center">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-0">
+          <div className="mb-10 text-center md:text-left">
             <h1 className="text-3xl font-bold text-gray-900">Katalog Hadiah</h1>
             <p className="text-gray-500 mt-2">Gunakan poin tabungan sampah Anda untuk mendapatkan hadiah menarik.</p>
           </div>

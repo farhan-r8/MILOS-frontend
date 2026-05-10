@@ -68,6 +68,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Menghapus data auth dari localStorage saat tab/browser ditutup
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   const persistAuth = (payload: AuthApiResponse) => {
     setUser(payload.user);
     setToken(payload.token);

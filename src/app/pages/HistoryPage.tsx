@@ -80,9 +80,9 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-10">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-0">
+          <div className="mb-10 text-center md:text-left">
             <h1 className="text-3xl font-bold text-gray-900">Riwayat Transaksi</h1>
             <p className="text-gray-500 mt-2">Daftar lengkap penyerahan sampah dan perolehan poin Anda.</p>
           </div>

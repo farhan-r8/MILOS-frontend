@@ -135,10 +135,10 @@ export default function AdminRedemptionsPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <div className="mb-4 flex items-center gap-3">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-0">
+          <div className="mb-8 text-center md:text-left">
+            <div className="mb-4 flex flex-col items-center md:items-start md:flex-row gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>

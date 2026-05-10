@@ -111,22 +111,24 @@ export function DashboardNavbar() {
             </div>
 
             {/* Notifications */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-10 w-10 rounded-full border border-gray-100 bg-white/80 shadow-sm hover:bg-green-50"
-              onClick={() => setNotificationCount(0)}
-            >
-              <Bell className="h-5 w-5 text-gray-600" />
-              {notificationCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[10px] font-bold"
-                >
-                  {notificationCount > 9 ? '9+' : notificationCount}
-                </Badge>
-              )}
-            </Button>
+            {user?.role === 'nasabah' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-10 w-10 rounded-full border border-gray-100 bg-white/80 shadow-sm hover:bg-green-50"
+                onClick={() => setNotificationCount(0)}
+              >
+                <Bell className="h-5 w-5 text-gray-600" />
+                {notificationCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[10px] font-bold"
+                  >
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </Badge>
+                )}
+              </Button>
+            )}
 
             {/* User Menu */}
             <DropdownMenu>
@@ -159,7 +161,7 @@ export function DashboardNavbar() {
 
           {/* Mobile Menu Button */}
           <div className="flex items-center gap-2 md:hidden">
-            {!isAdmin && (
+            {user?.role === 'nasabah' && (
               <Button
                 variant="ghost"
                 size="icon"

@@ -95,20 +95,20 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-0">
           {/* Header Section */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
-            <div>
+            <div className="text-center md:text-left">
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">Halo, {user?.name.split(' ')[0]}!</h1>
               <p className="text-gray-500 mt-1">Berikut adalah ringkasan aktivitas tabungan sampah Anda.</p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button onClick={() => navigate('/sell')} className="bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-200/50">
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <Button onClick={() => navigate('/sell')} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-200/50">
                 <Package className="w-4 h-4 mr-2" />
                 Jual Sampah
               </Button>
-              <Button variant="outline" onClick={() => navigate('/pickup')} className="rounded-xl bg-white border-gray-200">
+              <Button variant="outline" onClick={() => navigate('/pickup')} className="w-full sm:w-auto rounded-xl bg-white border-gray-200">
                 Ajukan Pickup
               </Button>
             </div>

@@ -5,7 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Award, Gift, TrendingUp, Trophy, PieChart, Star, LayoutGrid, Info } from 'lucide-react';
+import { Award, Gift, TrendingUp, Trophy, PieChart, Star, LayoutGrid, Info, Activity, CheckCircle2, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { SimpleLineChart } from '../components/SimpleLineChart';
@@ -84,16 +84,16 @@ export default function PointsPage() {
     [currentPoints, transactions]
   );
 
-  const unlockedAchievements = achievements.filter((a) => achievement.unlocked).length;
+  const unlockedAchievements = achievements.filter((a) => a.unlocked).length;
   const level = getLevelConfig(currentPoints);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-10 text-center">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-0">
+          <div className="mb-10 text-center md:text-left">
             <h1 className="text-3xl font-bold text-gray-900">Poin & Hadiah</h1>
             <p className="text-gray-500 mt-2">Dapatkan berbagai keuntungan dari tabungan sampah Anda.</p>
           </div>
@@ -151,6 +151,11 @@ export default function PointsPage() {
                 <TabsTrigger value="badges" className="rounded-xl px-6">
                   <Star className="w-4 h-4 mr-2" />
                   Pencapaian
+                  {unlockedAchievements > 0 && (
+                    <Badge className="ml-2 bg-yellow-500 text-[10px] px-1.5 h-4 min-w-[16px] flex items-center justify-center border-none text-white">
+                      {unlockedAchievements}
+                    </Badge>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger value="catalog" className="rounded-xl px-6">
                   <Gift className="w-4 h-4 mr-2" />

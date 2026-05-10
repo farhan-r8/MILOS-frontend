@@ -94,28 +94,28 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
       <PublicNavbar />
 
-      <section className="pt-24 pb-16 px-6 lg:px-8">
+      <section className="pt-24 pb-16 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="text-center md:text-left">
               <div className="inline-block px-4 py-2 bg-green-100 rounded-full text-green-700 font-medium mb-6">
                 Sistem pengelolaan sampah untuk nasabah dan pengurus
               </div>
-              <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 Pantau Sampah,<br />
                 Pickup, dan <span className="text-green-600">Poin</span> dalam Satu Sistem
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-lg md:text-xl text-gray-600 mb-8">
                 MILOS membantu proses jual sampah, pengajuan pickup, penukaran hadiah, dan pengelolaan jadwal
                 secara digital agar alur nasabah dan pengurus lebih tertata.
               </p>
               <p className="mb-8 text-sm font-medium text-green-700">
                 Area layanan saat ini difokuskan untuk sekitar {SERVICE_COVERAGE_LABEL}.
               </p>
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
                 <Button
                   size="lg"
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                   onClick={() => navigate('/register')}
                 >
                   Daftar Sekarang
@@ -123,13 +123,14 @@ export default function LandingPage() {
                 <Button
                   size="lg"
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => navigate('/login')}
                 >
                   Masuk
                 </Button>
               </div>
 
-              <div className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t">
+              <div className="grid grid-cols-3 gap-4 md:gap-6 mt-12 pt-8 border-t">
                 <div>
                   <div className="text-3xl font-bold text-green-600">
                     {loading ? '...' : wilayahAktif.length}
