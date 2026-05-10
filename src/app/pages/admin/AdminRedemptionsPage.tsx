@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashboardNavbar } from '../../components/DashboardNavbar';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -32,6 +32,7 @@ import {
   updateRedemptionStatus,
   type RedemptionItem,
 } from '../../lib/milosApi';
+import { useRealtimeRefresh } from '../../hooks/useRealtimeRefresh';
 
 export default function AdminRedemptionsPage() {
   const { token } = useAuth();
@@ -42,7 +43,7 @@ export default function AdminRedemptionsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const loadRedemptions = async () => {
+  const loadRedemptions = useCallback(async () => {
     if (!token) return;
     try {
       const data = await fetchAdminRedemptions(token);
@@ -52,11 +53,13 @@ export default function AdminRedemptionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     loadRedemptions();
-  }, [token]);
+  }, [loadRedemptions]);
+
+  useRealtimeRefresh(Boolean(token), loadRedemptions, ['redemption']);
 
   const handleViewDetails = (redemption: RedemptionItem) => {
     setSelectedRedemption(redemption);
@@ -132,7 +135,7 @@ export default function AdminRedemptionsPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <div className="mb-4 flex items-center gap-3">
@@ -145,7 +148,7 @@ export default function AdminRedemptionsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2">
@@ -216,8 +219,9 @@ export default function AdminRedemptionsPage() {
           <Card>
             <CardContent className="p-0">
               <div className="hidden md:block overflow-x-auto">
-              <Table>
-                <TableHeader>
+                <div className="min-w-[800px]">
+                  <Table>
+                    <TableHeader>
                   <TableRow>
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Nasabah</TableHead>
@@ -271,9 +275,9 @@ export default function AdminRedemptionsPage() {
                     ))
                   )}
                 </TableBody>
-              </Table>
-              </div>
-              <div className="space-y-4 p-4 md:hidden">
+                </Table>
+                </div>
+                </div>              <div className="space-y-4 p-4 md:hidden">
                 {loading ? (
                   <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
                     Memuat penukaran hadiah...

@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { Package, Award, CheckCircle2, Info } from 'lucide-react';
+import { Package, Award, CheckCircle2, Info, HelpCircle, ListChecks } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -34,31 +33,23 @@ export default function SellTransactionPage() {
   const [formData, setFormData] = useState({
     wasteType: '',
     weight: '',
-    notes: '',
+    condition: 'Bersih & Kering (Poin 100%)',
   });
 
   useEffect(() => {
     let isMounted = true;
-
     const loadWasteTypes = async () => {
       try {
         const data = await fetchWasteTypes();
-        if (isMounted) {
-          setWasteTypes(data);
-        }
+        if (isMounted) setWasteTypes(data);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Gagal memuat jenis sampah.');
       } finally {
-        if (isMounted) {
-          setLoadingWasteTypes(false);
-        }
+        if (isMounted) setLoadingWasteTypes(false);
       }
     };
-
     loadWasteTypes();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   const selectedWaste = useMemo(
@@ -66,30 +57,24 @@ export default function SellTransactionPage() {
     [formData.wasteType, wasteTypes]
   );
 
-  const availableWasteTypeLabels = useMemo(
-    () => wasteTypes.map((item) => item.label).join(', '),
-    [wasteTypes]
-  );
-
-  const estimatedPoints = selectedWaste && formData.weight
-    ? selectedWaste.pointsPerKg * Number(formData.weight)
-    : 0;
+  const estimatedPoints = useMemo(() => {
+    if (!selectedWaste || !formData.weight) return 0;
+    const basePoints = selectedWaste.pointsPerKg * Number(formData.weight);
+    return formData.condition.includes('40%') ? basePoints * 0.6 : basePoints;
+  }, [selectedWaste, formData.weight, formData.condition]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!token || !user) {
       toast.error('Sesi login tidak ditemukan. Silakan masuk ulang.');
       return;
     }
-
     if (wasteTypes.length === 0) {
-      toast.error('Belum ada jenis sampah yang tersedia. Silakan hubungi admin.');
+      toast.error('Belum ada jenis sampah yang tersedia.');
       return;
     }
-
     if (!formData.wasteType || !formData.weight) {
-      toast.error('Lengkapi jenis sampah dan berat terlebih dahulu.');
+      toast.error('Lengkapi data terlebih dahulu.');
       return;
     }
 
@@ -100,7 +85,7 @@ export default function SellTransactionPage() {
         userId: user.id,
         wasteTypeId: formData.wasteType,
         weight: Number(formData.weight),
-        notes: formData.notes.trim(),
+        notes: `Kondisi: ${formData.condition}`,
       });
 
       setSuccessData({
@@ -110,7 +95,7 @@ export default function SellTransactionPage() {
         pointsPerKg: result.pointsPerKg,
       });
       setSubmitted(true);
-      toast.success('Transaksi berhasil diajukan! Menunggu verifikasi pengurus.');
+      toast.success('Berhasil diajukan!');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Gagal mengajukan transaksi.');
     } finally {
@@ -119,55 +104,44 @@ export default function SellTransactionPage() {
   };
 
   const handleChange = (name: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   if (submitted && successData) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <DashboardNavbar />
-        <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
-            <Card className="text-center">
-              <CardContent className="pt-12 pb-12">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-xl mx-auto">
+            <Card className="border-none shadow-none text-center">
+              <CardContent className="pt-12">
+                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 sm:text-2xl mb-4">
-                  Transaksi Berhasil Diajukan
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Transaksi penjualan sampah Anda sudah tercatat dan sedang menunggu verifikasi admin.
-                </p>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 text-left max-w-md mx-auto">
-                  <h3 className="font-semibold text-gray-900 mb-4">Detail Transaksi</h3>
-                  <div className="space-y-3 text-sm text-gray-600">
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <span>Jenis Sampah:</span>
-                      <span className="font-medium text-gray-900">{successData.wasteType}</span>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Pencatatan Berhasil</h2>
+                <p className="text-gray-500 mb-10">Data Anda sedang menunggu verifikasi admin.</p>
+                
+                <div className="bg-gray-50 rounded-3xl p-6 mb-10 text-left">
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                    <div>
+                      <p className="text-gray-400 mb-1 uppercase text-[10px] font-bold tracking-wider">Jenis</p>
+                      <p className="font-semibold text-gray-900">{successData.wasteType}</p>
                     </div>
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <span>Berat:</span>
-                      <span className="font-medium text-gray-900">{successData.weight} kg</span>
+                    <div>
+                      <p className="text-gray-400 mb-1 uppercase text-[10px] font-bold tracking-wider">Berat</p>
+                      <p className="font-semibold text-gray-900">{successData.weight} kg</p>
                     </div>
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <span>Harga/kg:</span>
-                      <span className="font-medium text-gray-900">
-                        {successData.pointsPerKg.toLocaleString()} poin
-                      </span>
+                    <div>
+                      <p className="text-gray-400 mb-1 uppercase text-[10px] font-bold tracking-wider">Poin/kg</p>
+                      <p className="font-semibold text-gray-900">{successData.pointsPerKg.toLocaleString()}</p>
                     </div>
-                    <div className="pt-3 border-t flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="font-semibold">Total Poin:</span>
-                      <span className="font-bold text-green-600 text-lg">
-                        {successData.points.toLocaleString()} poin
-                      </span>
+                    <div>
+                      <p className="text-gray-400 mb-1 uppercase text-[10px] font-bold tracking-wider">Estimasi Total</p>
+                      <p className="font-bold text-green-600">{successData.points.toLocaleString()} Poin</p>
                     </div>
                   </div>
                 </div>
-                <Button className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/dashboard')}>
+                <Button className="w-full h-12 bg-green-600 hover:bg-green-700 rounded-xl font-bold" onClick={() => navigate('/dashboard')}>
                   Kembali ke Dashboard
                 </Button>
               </CardContent>
@@ -179,159 +153,141 @@ export default function SellTransactionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Jual Sampah</h1>
-            <p className="text-gray-600 mt-2">
-              Catat transaksi penjualan sampah Anda dan dapatkan poin.
-            </p>
-            <div className="mt-3 inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-sm text-green-800">
-              <Award className="w-4 h-4" />
-              <span className="font-semibold">1.000 poin = Rp 1.000</span>
-            </div>
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl font-bold text-gray-900">Jual Sampah</h1>
+            <p className="text-gray-500 mt-2">Dapatkan poin dari setiap sampah yang Anda tabung.</p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Form Penjualan Sampah</CardTitle>
-                <CardDescription>Isi data sampah yang akan Anda jual hari ini.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {!loadingWasteTypes && wasteTypes.length === 0 && (
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                      Saat ini belum ada jenis sampah aktif untuk dipilih. Silakan tambahkan atau aktifkan jenis sampah dari panel admin.
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="border-none shadow-sm rounded-3xl bg-white p-2 sm:p-6">
+                <CardContent className="pt-4">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="wasteType" className="text-gray-600 font-semibold">Jenis Sampah</Label>
+                      <Select
+                        value={formData.wasteType}
+                        onValueChange={(value) => handleChange('wasteType', value)}
+                        disabled={loadingWasteTypes || wasteTypes.length === 0}
+                      >
+                        <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50">
+                          <SelectValue placeholder={loadingWasteTypes ? 'Memuat...' : 'Pilih jenis sampah'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {wasteTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.label} • {type.pointsPerKg.toLocaleString()} poin/{type.unit}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  )}
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-semibold mb-1">Info Nasabah:</p>
-                      <p>Nama: <span className="font-medium">{user?.name}</span></p>
-                      <p>Alamat: <span className="font-medium">{user?.address || '-'}</span></p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="wasteType">Jenis Sampah *</Label>
-                    <Select
-                      value={formData.wasteType}
-                      onValueChange={(value) => handleChange('wasteType', value)}
-                      disabled={loadingWasteTypes || wasteTypes.length === 0}
-                    >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            loadingWasteTypes
-                              ? 'Memuat jenis sampah...'
-                              : wasteTypes.length === 0
-                              ? 'Belum ada jenis sampah tersedia'
-                              : 'Pilih jenis sampah'
-                          }
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="weight" className="text-gray-600 font-semibold">Berat (kg)</Label>
+                        <Input
+                          id="weight"
+                          type="number"
+                          step="0.1"
+                          min="0.1"
+                          className="h-12 rounded-xl border-gray-100 bg-gray-50/50"
+                          placeholder="0.0"
+                          value={formData.weight}
+                          onChange={(e) => handleChange('weight', e.target.value)}
+                          required
                         />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {wasteTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.label} - {type.pointsPerKg.toLocaleString()} poin/{type.unit}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {availableWasteTypeLabels && (
-                      <p className="text-xs text-gray-500">Pilihan tersedia: {availableWasteTypeLabels}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="condition" className="text-gray-600 font-semibold">Kondisi</Label>
+                        <Select
+                          value={formData.condition}
+                          onValueChange={(value) => handleChange('condition', value)}
+                        >
+                          <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Bersih & Kering (Poin 100%)">Bersih (100%)</SelectItem>
+                            <SelectItem value="Kotor/Basah (Potongan Poin 40%)">Basah (-40%)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {selectedWaste && formData.weight && (
+                      <div className="bg-green-50/50 border border-green-100 rounded-2xl p-6 text-center">
+                        <p className="text-xs text-green-600 uppercase font-bold tracking-widest mb-1">Estimasi Perolehan</p>
+                        <p className="text-4xl font-black text-green-700">{estimatedPoints.toLocaleString()}</p>
+                        <p className="text-xs text-green-600/70 mt-1">POIN</p>
+                      </div>
                     )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="weight">Berat Sampah (kg) *</Label>
-                    <Input
-                      id="weight"
-                      type="number"
-                      step="0.1"
-                      min="0.1"
-                      placeholder="Contoh: 2.5"
-                      value={formData.weight}
-                      onChange={(e) => handleChange('weight', e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  {selectedWaste && formData.weight && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <span className="text-sm text-gray-600">Estimasi Poin yang Didapat</span>
-                        <Award className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div className="text-3xl font-bold text-green-600">
-                        {estimatedPoints.toLocaleString()} poin
-                      </div>
-                      <div className="text-xs text-gray-600 mt-2">
-                        {formData.weight} kg x {selectedWaste.pointsPerKg.toLocaleString()} poin/kg
-                      </div>
+                    <div className="pt-6 border-t border-gray-50">
+                      <Button
+                        type="submit"
+                        className="w-full h-12 bg-green-600 hover:bg-green-700 rounded-xl font-bold shadow-lg shadow-green-100"
+                        disabled={submitting || wasteTypes.length === 0}
+                      >
+                        <Package className="w-4 h-4 mr-2" />
+                        {submitting ? 'Memproses...' : 'Ajukan Transaksi'}
+                      </Button>
                     </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Catatan (Opsional)</Label>
-                    <Textarea
-                      id="notes"
-                      className="min-h-20"
-                      placeholder="Informasi tambahan tentang kondisi sampah..."
-                      value={formData.notes}
-                      onChange={(e) => handleChange('notes', e.target.value)}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-3 pt-4 sm:flex-row">
-                    <Button
-                      type="submit"
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      disabled={submitting || wasteTypes.length === 0}
-                    >
-                      <Package className="w-4 h-4 mr-2" />
-                      {submitting ? 'Mengirim...' : 'Ajukan Transaksi'}
-                    </Button>
-                    <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/dashboard')}>
-                      Batal
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Daftar Harga</CardTitle>
-                  <CardDescription>Poin per kilogram dari database</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {wasteTypes.map((type) => (
-                    <div key={type.id} className="flex justify-between items-center text-sm">
-                      <span className="text-gray-700">{type.label}</span>
-                      <span className="font-semibold text-green-600">
-                        {type.pointsPerKg.toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
+                  </form>
                 </CardContent>
               </Card>
 
-              <Card className="bg-green-50 border-green-200">
-                <CardHeader>
-                  <CardTitle className="text-lg text-green-900">Syarat & Ketentuan</CardTitle>
+              <div className="bg-white rounded-3xl p-6 shadow-sm flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+                  <Info className="w-6 h-6 text-blue-500" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900">Petunjuk Setor</h4>
+                  <p className="text-sm text-gray-500 leading-relaxed mt-1">
+                    Pastikan sampah sudah dipilah dan dalam kondisi layak. Petugas akan memverifikasi berat dan kondisi saat penyerahan fisik.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+                <CardHeader className="bg-gray-50/50 border-b border-gray-50">
+                  <CardTitle className="text-lg">Daftar Harga</CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm text-green-800 space-y-2">
-                  <p>Sampah harus dalam kondisi bersih dan kering.</p>
-                  <p>Pisahkan sampah berdasarkan jenisnya.</p>
-                  <p>Poin masuk setelah verifikasi admin.</p>
+                <CardContent className="p-0">
+                  <div className="divide-y divide-gray-50">
+                    {wasteTypes.map((type) => (
+                      <div key={type.id} className="p-4 flex items-center justify-between">
+                        <span className="text-sm text-gray-600">{type.label}</span>
+                        <span className="font-bold text-green-600">{type.pointsPerKg.toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">pts</span></span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+                <CardHeader className="bg-emerald-50 border-b border-emerald-100">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <HelpCircle className="w-5 h-5 text-emerald-600" />
+                    Ketentuan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4 text-xs text-gray-500">
+                  <div>
+                    <p className="font-bold text-gray-700 mb-1">Cakupan Area</p>
+                    <p>Hanya melayani wilayah Desa Sidamulih.</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-700 mb-1">Verifikasi Poin</p>
+                    <p>Poin otomatis masuk ke saldo setelah diverifikasi oleh petugas Bank Sampah.</p>
+                  </div>
                 </CardContent>
               </Card>
             </div>

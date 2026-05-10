@@ -11,6 +11,7 @@ import PickupPage from './pages/PickupPage';
 import HistoryPage from './pages/HistoryPage';
 import PointsPage from './pages/PointsPage';
 import RewardsPage from './pages/RewardsPage';
+import NotificationsPage from './pages/NotificationsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import SchedulesPage from './pages/admin/SchedulesPage';
 import WasteTypesPage from './pages/admin/WasteTypesPage';
@@ -68,6 +69,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute requiredRole="nasabah">
         <HistoryPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/notifications',
+    element: (
+      <ProtectedRoute requiredRole="nasabah">
+        <NotificationsPage />
       </ProtectedRoute>
     ),
   },

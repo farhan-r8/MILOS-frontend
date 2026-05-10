@@ -304,12 +304,17 @@ export async function fetchUsers(token: string) {
 export async function verifyTransaction(
   token: string,
   transactionId: number,
-  status: 'verified' | 'rejected'
+  params: {
+    status: 'verified' | 'rejected';
+    weight?: number;
+    wasteTypeId?: string;
+    condition?: string;
+  }
 ) {
   return apiRequest<{ message: string }>(`/transaksi/${transactionId}/verify`, {
     method: 'PATCH',
     token,
-    body: { status },
+    body: params,
   });
 }
 

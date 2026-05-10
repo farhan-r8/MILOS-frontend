@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashboardNavbar } from '../components/DashboardNavbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
-import { Award, Gift, TrendingUp, Trophy } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Award, Gift, TrendingUp, Trophy, PieChart, Star, LayoutGrid, Info } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { SimpleLineChart } from '../components/SimpleLineChart';
@@ -12,6 +13,7 @@ import { SimplePieChart } from '../components/SimplePieChart';
 import { fetchRewards, fetchTransactions, fetchUserPoints, type RewardItem, type TransactionItem } from '../lib/milosApi';
 import { toast } from 'sonner';
 import { buildAchievements, getLevelConfig, type AchievementItem } from '../lib/pointsProgram';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 
 const monthFormatter = new Intl.DateTimeFormat('id-ID', { month: 'short' });
 
@@ -23,343 +25,256 @@ export default function PointsPage() {
   const [currentPoints, setCurrentPoints] = useState<number>(user?.points || 0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadData = async () => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const [transactionResult, pointsResult, rewardResult] = await Promise.allSettled([
-          fetchTransactions(user.id),
-          fetchUserPoints(user.id, token),
-          fetchRewards(),
-        ]);
-
-        if (isMounted) {
-          if (transactionResult.status === 'fulfilled') {
-            setTransactions(transactionResult.value);
-          }
-
-          if (pointsResult.status === 'fulfilled') {
-            setCurrentPoints(pointsResult.value.totalPoints);
-          }
-
-          if (rewardResult.status === 'fulfilled') {
-            setRewards(rewardResult.value);
-          }
-
-          if (
-            transactionResult.status === 'rejected' &&
-            pointsResult.status === 'rejected' &&
-            rewardResult.status === 'rejected'
-          ) {
-            toast.error('Gagal memuat seluruh data poin.');
-          }
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadData();
-    return () => {
-      isMounted = false;
-    };
+  const loadData = useCallback(async () => {
+    if (!user?.id) { setLoading(false); return; }
+    try {
+      const [transactionResult, pointsResult, rewardResult] = await Promise.allSettled([
+        fetchTransactions(user.id),
+        fetchUserPoints(user.id, token),
+        fetchRewards(),
+      ]);
+      if (transactionResult.status === 'fulfilled') setTransactions(transactionResult.value);
+      if (pointsResult.status === 'fulfilled') setCurrentPoints(pointsResult.value.totalPoints);
+      if (rewardResult.status === 'fulfilled') setRewards(rewardResult.value);
+    } finally {
+      setLoading(false);
+    }
   }, [token, user?.id]);
+
+  useEffect(() => { loadData(); }, [loadData]);
+  useRealtimeRefresh(Boolean(user?.id), loadData, ['transaction', 'redemption']);
 
   const currentMonthPoints = useMemo(() => {
     const now = new Date();
     return transactions
-      .filter((transaction) => {
-        const date = new Date(transaction.date);
-        return (
-          transaction.status === 'verified' &&
-          date.getMonth() === now.getMonth() &&
-          date.getFullYear() === now.getFullYear()
-        );
+      .filter((t) => {
+        const date = new Date(t.date);
+        return t.status === 'verified' && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
       })
-      .reduce((sum, transaction) => sum + transaction.totalPoints, 0);
+      .reduce((sum, t) => sum + t.totalPoints, 0);
   }, [transactions]);
 
   const monthlyData = useMemo(() => {
     const grouped = new Map<string, number>();
     transactions
-      .filter((transaction) => transaction.status === 'verified')
-      .forEach((transaction) => {
-      const key = monthFormatter.format(new Date(transaction.date));
-      grouped.set(key, (grouped.get(key) || 0) + transaction.totalPoints);
+      .filter((t) => t.status === 'verified')
+      .forEach((t) => {
+        const key = monthFormatter.format(new Date(t.date));
+        grouped.set(key, (grouped.get(key) || 0) + t.totalPoints);
       });
-
     return Array.from(grouped.entries()).map(([month, points]) => ({ month, points }));
   }, [transactions]);
 
   const wasteTypeData = useMemo(() => {
-    const verifiedTransactions = transactions.filter((transaction) => transaction.status === 'verified');
-
-    if (verifiedTransactions.length === 0) {
-      return [];
-    }
-
+    const verified = transactions.filter((t) => t.status === 'verified');
+    if (verified.length === 0) return [];
     const grouped = new Map<string, number>();
     const palette = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#6b7280', '#ef4444'];
-    const totalWeight = verifiedTransactions.reduce((sum, transaction) => sum + transaction.weight, 0);
-
-    verifiedTransactions.forEach((transaction) => {
-      grouped.set(transaction.wasteType, (grouped.get(transaction.wasteType) || 0) + transaction.weight);
-    });
-
-    return Array.from(grouped.entries()).map(([name, weight], index) => ({
+    const totalWeight = verified.reduce((sum, t) => sum + t.weight, 0);
+    verified.forEach((t) => { grouped.set(t.wasteType, (grouped.get(t.wasteType) || 0) + t.weight); });
+    return Array.from(grouped.entries()).map(([name, weight], i) => ({
       name,
       value: totalWeight > 0 ? Math.round((weight / totalWeight) * 100) : 0,
-      color: palette[index % palette.length],
+      color: palette[i % palette.length],
     }));
   }, [transactions]);
 
-  const verifiedTransactions = useMemo(
-    () => transactions.filter((transaction) => transaction.status === 'verified'),
-    [transactions]
-  );
-
   const achievements = useMemo<AchievementItem[]>(
-    () => buildAchievements(verifiedTransactions, currentPoints),
-    [currentPoints, verifiedTransactions]
+    () => buildAchievements(transactions.filter(t => t.status === 'verified'), currentPoints),
+    [currentPoints, transactions]
   );
 
-  const unlockedAchievements = achievements.filter((achievement) => achievement.unlocked).length;
+  const unlockedAchievements = achievements.filter((a) => achievement.unlocked).length;
   const level = getLevelConfig(currentPoints);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Poin & Reward</h1>
-            <p className="text-gray-600 mt-2">
-              Pantau perkembangan poin dan tukarkan dengan hadiah menarik
-            </p>
-            <div className="mt-3 inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-sm text-green-800">
-              <Award className="w-4 h-4" />
-              <span className="font-semibold">1.000 poin = Rp 1.000</span>
-            </div>
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl font-bold text-gray-900">Poin & Hadiah</h1>
+            <p className="text-gray-500 mt-2">Dapatkan berbagai keuntungan dari tabungan sampah Anda.</p>
           </div>
 
-          <div className="mb-8 grid gap-6 md:grid-cols-4">
-            <Card className="md:col-span-2 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-              <CardHeader>
-                <CardDescription className="text-green-50">Poin Anda Saat Ini</CardDescription>
-                <CardTitle className="text-3xl sm:text-4xl lg:text-5xl">{currentPoints.toLocaleString()}</CardTitle>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <Card className="border-none bg-green-600 text-white shadow-xl shadow-green-100 rounded-3xl md:col-span-1">
+              <CardHeader className="pb-2">
+                <span className="text-green-100 text-xs font-medium uppercase tracking-wider">Saldo Poin</span>
+                <CardTitle className="text-4xl pt-2">{currentPoints.toLocaleString()}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-2 text-green-50">
-                  <TrendingUp className="w-5 h-5" />
-                  <span>
-                    {loading
-                      ? 'Memuat ringkasan poin...'
-                      : `+${currentMonthPoints.toLocaleString()} poin bulan ini`}
-                  </span>
+                <div className="flex items-center gap-1.5 text-green-50 text-xs">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>+{currentMonthPoints.toLocaleString()} poin bulan ini</span>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start gap-3">
-                  <div>
-                    <CardDescription>Level Anda</CardDescription>
-                    <CardTitle className="mt-2 text-2xl sm:text-3xl">{level.label}</CardTitle>
-                  </div>
-                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-yellow-600" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-gray-600">
-                      {level.next ? `Progress ke ${level.next}` : 'Level tertinggi tercapai'}
-                    </span>
-                    <span className="font-medium">{level.progress}%</span>
-                  </div>
-                  <Progress value={level.progress} className="h-2" />
-                  <p className="text-xs text-gray-500">
-                    {level.next ? `${level.remaining.toLocaleString()} poin lagi untuk naik level` : 'Tidak ada level berikutnya'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start gap-3">
-                  <div>
-                    <CardDescription>Achievement</CardDescription>
-                    <CardTitle className="mt-2 text-2xl sm:text-3xl">
-                      {unlockedAchievements}/{achievements.length}
-                    </CardTitle>
-                  </div>
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Award className="w-6 h-6 text-purple-600" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  {achievements.length - unlockedAchievements > 0
-                    ? `${achievements.length - unlockedAchievements} achievement lagi untuk bonus poin`
-                    : 'Semua achievement sudah terbuka'}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-6 mb-8">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Perkembangan Poin</CardTitle>
-                <CardDescription>Grafik perolehan poin berdasarkan transaksi nyata</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {monthlyData.length > 0 ? (
-                  <SimpleLineChart data={monthlyData} />
-                ) : (
-                  <div className="py-8 text-center text-sm text-gray-500">
-                    Belum ada transaksi untuk menampilkan perkembangan poin.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribusi Sampah</CardTitle>
-                <CardDescription>Berdasarkan jenis sampah dari transaksi Anda</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {wasteTypeData.length > 0 ? (
-                  <SimplePieChart data={wasteTypeData} />
-                ) : (
-                  <div className="py-8 text-center text-sm text-gray-500">
-                    Belum ada data sampah untuk ditampilkan.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="mb-8">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>Pencapaian</CardTitle>
-                  <CardDescription>Raih achievement untuk mendapatkan bonus poin</CardDescription>
-                </div>
-                <Badge className="bg-purple-100 text-purple-700 border-purple-200">
-                  {unlockedAchievements} Terbuka
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {achievements.map((achievement) => (
-                  <div
-                    key={achievement.id}
-                    className={`p-4 rounded-lg border-2 ${
-                      achievement.unlocked
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          achievement.unlocked
-                            ? 'bg-green-500 text-white'
-                            : 'bg-gray-300 text-gray-600'
-                        }`}
-                      >
-                        <achievement.icon className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
-                        <p className="text-sm text-gray-600">{achievement.description}</p>
-                      </div>
-                      {achievement.unlocked && (
-                        <Badge className="bg-green-600 text-white">OK</Badge>
-                      )}
+            <Card className="border-none bg-white shadow-sm rounded-3xl md:col-span-2">
+              <CardContent className="p-6">
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <div className="relative shrink-0">
+                    <div className="w-20 h-20 rounded-full border-4 border-yellow-50 flex items-center justify-center bg-yellow-100">
+                      <Trophy className="w-10 h-10 text-yellow-600" />
                     </div>
-                    {!achievement.unlocked && (
-                      <>
-                        <Progress value={achievement.progress} className="h-2 mb-2" />
-                        <p className="text-xs text-gray-600">{achievement.progress}% selesai</p>
-                      </>
-                    )}
+                    <div className="absolute -bottom-1 -right-1 bg-white shadow-sm rounded-full p-1 border border-yellow-100">
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="flex-1 w-full space-y-3">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Level Saat Ini</p>
+                        <p className="text-xl font-bold text-gray-900">{level.label}</p>
+                      </div>
+                      <p className="text-xs font-bold text-yellow-600">{level.progress}%</p>
+                    </div>
+                    <Progress value={level.progress} className="h-2 bg-yellow-50" />
+                    <p className="text-xs text-gray-500">
+                      {level.next ? `Butuh ${level.remaining.toLocaleString()} poin lagi untuk naik ke ${level.next}` : 'Anda telah mencapai level tertinggi!'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Katalog Reward</CardTitle>
-              <CardDescription>
-                Tukarkan poin Anda dengan hadiah menarik berikut
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {rewards.map((reward) => (
-                  <div
-                    key={reward.id}
-                    className={`border-2 rounded-lg p-4 ${
-                      reward.stock > 0 ? 'border-gray-200 hover:border-green-500' : 'border-gray-100 bg-gray-50'
-                    } transition`}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-1">{reward.name}</h3>
-                        <div className="flex items-center gap-2">
-                          <Award className="w-4 h-4 text-green-600" />
-                          <span className="text-lg font-bold text-green-600">
-                            {reward.pointsRequired.toLocaleString()}
-                          </span>
-                          <span className="text-sm text-gray-600">poin</span>
+          <Tabs defaultValue="stats" className="space-y-8">
+            <div className="flex justify-center">
+              <TabsList className="bg-white p-1 rounded-2xl shadow-sm">
+                <TabsTrigger value="stats" className="rounded-xl px-6">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Statistik
+                </TabsTrigger>
+                <TabsTrigger value="badges" className="rounded-xl px-6">
+                  <Star className="w-4 h-4 mr-2" />
+                  Pencapaian
+                </TabsTrigger>
+                <TabsTrigger value="catalog" className="rounded-xl px-6">
+                  <Gift className="w-4 h-4 mr-2" />
+                  Katalog
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="stats" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <Card className="border-none shadow-sm rounded-3xl bg-white p-6">
+                  <CardHeader className="px-0 pt-0">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-green-600" />
+                      Grafik Poin
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-0 pb-0">
+                    {monthlyData.length > 0 ? (
+                      <SimpleLineChart data={monthlyData} />
+                    ) : (
+                      <div className="py-20 text-center text-gray-400">Belum ada riwayat poin.</div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="border-none shadow-sm rounded-3xl bg-white p-6">
+                  <CardHeader className="px-0 pt-0">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <PieChart className="w-5 h-5 text-blue-600" />
+                      Komposisi Sampah
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-0 pb-0">
+                    {wasteTypeData.length > 0 ? (
+                      <SimplePieChart data={wasteTypeData} />
+                    ) : (
+                      <div className="py-20 text-center text-gray-400">Belum ada data sampah.</div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="badges">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {achievements.map((a) => (
+                  <Card key={a.id} className={`border-none rounded-3xl shadow-sm transition-all ${a.unlocked ? 'bg-white' : 'bg-gray-100/50 grayscale'}`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${a.unlocked ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'}`}>
+                          <a.icon className="w-7 h-7" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-gray-900 truncate">{a.title}</p>
+                          <p className="text-xs text-gray-500 line-clamp-2 mt-1">{a.description}</p>
                         </div>
                       </div>
-                      <Gift className={`w-8 h-8 ${reward.stock > 0 ? 'text-green-600' : 'text-gray-400'}`} />
-                    </div>
-
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="text-sm text-gray-600">
-                        Stok: {reward.stock > 0 ? reward.stock : 'Habis'}
-                      </span>
-                      <Button
-                        size="sm"
-                        disabled={reward.stock < 1 || currentPoints < reward.pointsRequired}
-                        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 sm:w-auto"
-                        onClick={() => navigate(`/rewards?redeem=${reward.id}`)}
-                      >
-                        {reward.stock < 1
-                          ? 'Habis'
-                          : currentPoints < reward.pointsRequired
-                          ? 'Poin Kurang'
-                          : 'Tukar'}
-                      </Button>
-                    </div>
-                  </div>
+                      {!a.unlocked && (
+                        <div className="mt-4 space-y-1.5">
+                          <div className="flex justify-between text-[10px] font-bold text-gray-400">
+                            <span>PROGRESS</span>
+                            <span>{a.progress}%</span>
+                          </div>
+                          <Progress value={a.progress} className="h-1" />
+                        </div>
+                      )}
+                      {a.unlocked && (
+                        <div className="mt-4 flex items-center gap-1 text-[10px] font-bold text-green-600 uppercase tracking-widest">
+                          <CheckCircle2 className="w-3 h-3" /> Terbuka
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
+
+            <TabsContent value="catalog">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {rewards.map((reward) => (
+                  <Card key={reward.id} className="border-none shadow-sm rounded-3xl bg-white overflow-hidden flex flex-col">
+                    <CardHeader className="bg-gray-50/50 p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge variant="outline" className="bg-white border-gray-100 text-gray-500 rounded-lg">{reward.category}</Badge>
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase">
+                          <Package className="w-3 h-3" /> {reward.stock} Tersedia
+                        </div>
+                      </div>
+                      <CardTitle className="text-xl text-gray-900">{reward.name}</CardTitle>
+                      <CardDescription className="line-clamp-2 text-xs">{reward.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6 flex-1 flex flex-col justify-between">
+                      <div className="mb-6">
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Harga Tukar</p>
+                        <div className="flex items-center gap-1.5 mt-1 text-green-600">
+                          <Award className="w-5 h-5" />
+                          <span className="text-3xl font-black">{reward.pointsRequired.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <Button
+                        className="w-full h-11 rounded-xl bg-green-600 hover:bg-green-700 font-bold shadow-lg shadow-green-100 disabled:bg-gray-100 disabled:text-gray-400"
+                        disabled={reward.stock < 1 || currentPoints < reward.pointsRequired}
+                        onClick={() => navigate(`/rewards?redeem=${reward.id}`)}
+                      >
+                        {reward.stock < 1 ? 'Stok Habis' : currentPoints < reward.pointsRequired ? 'Poin Kurang' : 'Tukar Sekarang'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* Footer Info */}
+          <div className="mt-16 p-6 rounded-3xl bg-blue-50/50 border border-blue-100 flex items-start gap-4">
+            <Info className="w-6 h-6 text-blue-500 shrink-0" />
+            <div className="text-sm">
+              <p className="font-bold text-blue-900">Nilai Tukar Poin</p>
+              <p className="text-blue-700/70 mt-1 leading-relaxed">
+                Setiap 1.000 poin bernilai setara dengan Rp 1.000. Poin dapat ditukarkan melalui katalog hadiah di atas atau dikonversi menjadi saldo digital melalui petugas di kantor Bank Sampah MILOS.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

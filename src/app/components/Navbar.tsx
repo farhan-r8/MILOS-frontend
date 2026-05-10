@@ -1,6 +1,16 @@
-import { Link, useNavigate } from "react-router";
-import { Leaf, User, LogOut, LayoutDashboard } from "lucide-react";
-import { useState } from "react";
+import { Link, useNavigate, useLocation } from 'react-router';
+import { Button } from './ui/button';
+import { Leaf, LogOut, Menu, X, User, LayoutDashboard } from 'lucide-react';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 interface NavbarProps {
   userRole?: 'nasabah' | 'admin' | null;
@@ -8,88 +18,187 @@ interface NavbarProps {
 }
 
 export function Navbar({ userRole, userName }: NavbarProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const [showDropdown, setShowDropdown] = useState(false);
+  const location = useLocation();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    // Mock logout - in real app would clear auth state
+    logout();
     navigate('/');
   };
 
+  const isAdmin = user?.role === 'admin' || userRole === 'admin';
+
+  const navLinkClass = (path: string) => {
+    const isActive = location.pathname === path || (path.startsWith('/#') && location.hash === path.substring(1));
+    return `rounded-full px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-green-50 hover:text-green-700 ${
+      isActive ? 'bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100' : ''
+    }`;
+  };
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    if (location.pathname === '/') {
+      e.preventDefault();
+      const element = document.getElementById(id);
+      if (element) {
+        const offset = 80;
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = element.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+      setIsMenuOpen(false);
+    }
+  };
+
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 p-2 rounded-lg">
-              <Leaf className="w-6 h-6 text-white" />
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/60 bg-white/90 backdrop-blur-md shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-3">
+          {/* Logo */}
+          <Link to="/" className="group flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 shadow-[0_12px_25px_rgba(16,185,129,0.28)] transition-transform duration-200 group-hover:scale-[1.03]">
+              <Leaf className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
-              MILOS
-            </span>
+            <div className="min-w-0">
+              <div className="truncate text-lg font-extrabold tracking-tight text-green-700 sm:text-xl">MILOS</div>
+              <div className="hidden text-xs text-gray-500 sm:block">Bank Sampah Digital</div>
+            </div>
           </Link>
 
-          <div className="flex items-center gap-6">
-            {!userRole ? (
-              <>
-                <Link 
-                  to="/#jadwal" 
-                  className="text-gray-700 hover:text-green-600 transition-colors"
-                >
-                  Jadwal
-                </Link>
-                <Link 
-                  to="/#tentang" 
-                  className="text-gray-700 hover:text-green-600 transition-colors"
-                >
-                  Tentang
-                </Link>
-                <Link 
-                  to="/login" 
-                  className="text-gray-700 hover:text-green-600 transition-colors"
-                >
-                  Masuk
-                </Link>
-                <Link 
-                  to="/register" 
-                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Daftar
-                </Link>
-              </>
+          {/* Desktop Navigation */}
+          <div className="hidden items-center gap-4 md:flex">
+            <div className="flex items-center gap-1 rounded-full border border-gray-100 bg-white/80 p-1 shadow-sm">
+              <Link to="/#jadwal" onClick={(e) => scrollToSection(e, 'jadwal')} className={navLinkClass('/#jadwal')}>
+                Jadwal
+              </Link>
+              <Link to="/#tentang" onClick={(e) => scrollToSection(e, 'tentang')} className={navLinkClass('/#tentang')}>
+                Tentang
+              </Link>
+              {!user && (
+                <>
+                  <Link to="/login" className={navLinkClass('/login')}>
+                    Masuk
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-auto rounded-full border border-gray-100 bg-white/80 px-2 py-1.5 shadow-sm hover:bg-green-50">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100">
+                        <User className="h-4 w-4 text-green-700" />
+                      </div>
+                      <div className="hidden min-w-0 text-left lg:block">
+                        <div className="max-w-[10rem] truncate text-sm font-semibold text-gray-800">{user.name}</div>
+                        <div className="text-xs text-gray-500">{isAdmin ? 'Admin' : 'Nasabah'}</div>
+                      </div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div>{user.name}</div>
+                    <div className="text-xs font-normal text-gray-500">{user.email}</div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}>
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Keluar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <div className="relative">
-                <button
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors"
-                >
-                  <User className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">{userName || 'User'}</span>
-                </button>
-                
-                {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
-                    <Link
-                      to={userRole === 'admin' ? '/admin' : '/nasabah'}
-                      className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
-                      onClick={() => setShowDropdown(false)}
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-gray-600" />
-                      <span>Dashboard</span>
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left border-t border-gray-100"
-                    >
-                      <LogOut className="w-4 h-4 text-red-600" />
-                      <span className="text-red-600">Keluar</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+              <Link to="/register">
+                <Button className="rounded-full bg-green-600 px-6 font-semibold shadow-lg shadow-green-200 hover:bg-green-700">
+                  Daftar Sekarang
+                </Button>
+              </Link>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="flex items-center gap-2 md:hidden">
+            <button
+              className="rounded-xl border border-gray-100 bg-white/80 p-2 shadow-sm transition hover:bg-green-50"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="border-t border-gray-100 py-4 md:hidden">
+            <div className="max-h-[calc(100vh-5rem)] overflow-y-auto rounded-3xl border border-gray-100 bg-white/95 p-4 shadow-xl">
+              {user && (
+                <div className="mb-4 flex items-center gap-3 rounded-2xl bg-green-50/80 px-3 py-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                    <User className="h-4 w-4 text-green-700" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-gray-900">{user.name}</div>
+                    <div className="truncate text-xs text-gray-500">{user.email}</div>
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <Link to="/#jadwal" onClick={(e) => scrollToSection(e, 'jadwal')} className={navLinkClass('/#jadwal')}>
+                  Jadwal
+                </Link>
+                <Link to="/#tentang" onClick={(e) => scrollToSection(e, 'tentang')} className={navLinkClass('/#tentang')}>
+                  Tentang
+                </Link>
+                
+                {user ? (
+                  <>
+                    <Link to={isAdmin ? '/admin' : '/dashboard'} className={navLinkClass(isAdmin ? '/admin' : '/dashboard')}>
+                      Dashboard
+                    </Link>
+                    <div className="pt-4 mt-2 border-t border-gray-100">
+                      <Button
+                        variant="outline"
+                        className="w-full text-red-600 border-red-100 hover:bg-red-50 hover:text-red-700"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Keluar
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className={navLinkClass('/login')}>
+                      Masuk
+                    </Link>
+                    <div className="pt-4 mt-2 border-t border-gray-100">
+                      <Link to="/register">
+                        <Button className="w-full bg-green-600 font-semibold shadow-lg shadow-green-200">
+                          Daftar Sekarang
+                        </Button>
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

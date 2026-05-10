@@ -159,7 +159,7 @@ export default function AdminRewardsPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -178,7 +178,7 @@ export default function AdminRewardsPage() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-gray-600">Total Jenis Barang</CardTitle>
@@ -219,8 +219,9 @@ export default function AdminRewardsPage() {
           <Card>
             <CardContent className="p-0">
               <div className="hidden md:block overflow-x-auto">
-              <Table>
-                <TableHeader>
+                <div className="min-w-[800px]">
+                  <Table>
+                    <TableHeader>
                   <TableRow>
                     <TableHead>Nama Barang</TableHead>
                     <TableHead>Kategori</TableHead>
@@ -284,9 +285,9 @@ export default function AdminRewardsPage() {
                     ))
                   )}
                 </TableBody>
-              </Table>
-              </div>
-              <div className="space-y-4 p-4 md:hidden">
+                </Table>
+                </div>
+                </div>              <div className="space-y-4 p-4 md:hidden">
                 {loading ? (
                   <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
                     Memuat katalog hadiah...

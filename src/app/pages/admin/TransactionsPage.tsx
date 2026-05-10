@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashboardNavbar } from '../../components/DashboardNavbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -32,53 +32,86 @@ import {
   Eye,
 } from 'lucide-react';
 import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
 import { toast } from 'sonner';
-import { fetchTransactions, verifyTransaction, type TransactionItem } from '../../lib/milosApi';
+import { fetchTransactions, verifyTransaction, fetchWasteTypes, type TransactionItem, type WasteTypeOption } from '../../lib/milosApi';
 import { useAuth } from '../../context/AuthContext';
+import { useRealtimeRefresh } from '../../hooks/useRealtimeRefresh';
 
 export default function TransactionsPage() {
   const { token } = useAuth();
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [wasteTypes, setWasteTypes] = useState<WasteTypeOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
+  // Adjustment state
+  const [adjWeight, setAdjWeight] = useState('');
+  const [adjWasteType, setAdjWasteType] = useState('');
+  const [adjCondition, setAdjCondition] = useState('Bersih');
 
-    const loadTransactions = async () => {
-      try {
-        const data = await fetchTransactions();
-        if (isMounted) {
-          setTransactions(data);
-        }
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Gagal memuat transaksi admin.');
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadTransactions();
-    return () => {
-      isMounted = false;
-    };
+  const loadData = useCallback(async () => {
+    try {
+      const [transData, wasteData] = await Promise.all([
+        fetchTransactions(),
+        fetchWasteTypes(),
+      ]);
+      setTransactions(transData);
+      setWasteTypes(wasteData);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal memuat data transaksi.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    if (selectedTransaction) {
+      setAdjWeight(String(selectedTransaction.weight));
+      // Find matching waste type ID from label if possible, or just default to empty
+      const found = wasteTypes.find(t => t.label === selectedTransaction.wasteType);
+      setAdjWasteType(found?.id || '');
+      setAdjCondition('Bersih');
+    }
+  }, [selectedTransaction, wasteTypes]);
+
+  useRealtimeRefresh(Boolean(token), loadData, ['transaction']);
 
   const handleStatusUpdate = async (transaction: TransactionItem, status: 'verified' | 'rejected') => {
     if (!token) return;
+
+    const params: any = { status };
+
+    if (status === 'verified') {
+      if (!adjWeight || Number(adjWeight) < 2) {
+        toast.error('Berat minimal 2kg untuk verifikasi.');
+        return;
+      }
+      if (!adjWasteType) {
+        toast.error('Pilih jenis sampah.');
+        return;
+      }
+      params.weight = Number(adjWeight);
+      params.wasteTypeId = adjWasteType;
+      params.condition = adjCondition;
+    }
+
     try {
-      await verifyTransaction(token, transaction.rawId, status);
-      setTransactions((prev) =>
-        prev.map((item) =>
-          item.rawId === transaction.rawId
-            ? { ...item, status }
-            : item
-        )
-      );
+      await verifyTransaction(token, transaction.rawId, params);
+      await loadData(); // Re-fetch to get adjusted values (weight, points, etc.)
       toast.success(status === 'verified' ? 'Transaksi berhasil diverifikasi.' : 'Transaksi ditolak.');
       setDialogOpen(false);
     } catch (error) {
@@ -122,14 +155,14 @@ export default function TransactionsPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Kelola Transaksi</h1>
             <p className="text-gray-600 mt-2">Verifikasi dan kelola semua transaksi nasabah.</p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Total Transaksi</CardDescription>
@@ -205,37 +238,103 @@ export default function TransactionsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Detail Transaksi</DialogTitle>
-            <DialogDescription>Tinjau transaksi sebelum memverifikasi.</DialogDescription>
+            <DialogTitle>Verifikasi Transaksi</DialogTitle>
+            <DialogDescription>Sesuaikan data berdasarkan kondisi fisik sampah.</DialogDescription>
           </DialogHeader>
           {selectedTransaction && (
-            <div className="space-y-3 text-sm">
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-gray-600">ID</span>
-                <span className="font-semibold">{selectedTransaction.id}</span>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div>
+                  <div className="text-gray-500">Nasabah</div>
+                  <div className="font-semibold">{selectedTransaction.customerName}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500">Metode</div>
+                  <div className="font-semibold">{selectedTransaction.method}</div>
+                </div>
+                <div className="col-span-2">
+                  <div className="text-gray-500">Catatan Nasabah</div>
+                  <div className="italic">{selectedTransaction.notes || '-'}</div>
+                </div>
               </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-gray-600">Nasabah</span>
-                <span className="font-semibold">{selectedTransaction.customerName}</span>
-              </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-gray-600">Jenis Sampah</span>
-                <span>{selectedTransaction.wasteType}</span>
-              </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-gray-600">Berat</span>
-                <span>{selectedTransaction.weight.toFixed(1)} kg</span>
-              </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-gray-600">Poin/kg</span>
-                <span>{selectedTransaction.pointsPerKg.toLocaleString()}</span>
-              </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-gray-600">Total Poin</span>
-                <span className="font-semibold text-green-600">
-                  {selectedTransaction.totalPoints.toLocaleString()}
-                </span>
-              </div>
+
+              {selectedTransaction.status === 'pending' ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="adjWasteType">Jenis Sampah</Label>
+                    <Select value={adjWasteType} onValueChange={setAdjWasteType}>
+                      <SelectTrigger id="adjWasteType">
+                        <SelectValue placeholder="Pilih jenis sampah" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {wasteTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.id}>
+                            {type.label} ({type.pointsPerKg} poin/{type.unit})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="adjWeight">Berat Aktual (kg)</Label>
+                    <Input
+                      id="adjWeight"
+                      type="number"
+                      step="0.1"
+                      min="2"
+                      value={adjWeight}
+                      onChange={(e) => setAdjWeight(e.target.value)}
+                    />
+                    <p className="text-[10px] text-gray-500">Minimal 2kg untuk verifikasi.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="adjCondition">Kondisi Sampah</Label>
+                    <Select value={adjCondition} onValueChange={setAdjCondition}>
+                      <SelectTrigger id="adjCondition">
+                        <SelectValue placeholder="Pilih kondisi" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Bersih">Bersih (Poin 100%)</SelectItem>
+                        <SelectItem value="Basah">Basah/Kotor (Potongan 40%)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {adjWeight && adjWasteType && (
+                    <div className="bg-green-50 p-3 rounded-lg border border-green-100">
+                      <div className="text-xs text-green-700">Estimasi Poin Akhir</div>
+                      <div className="text-xl font-bold text-green-600">
+                        {Math.floor(
+                          Number(adjWeight) * 
+                          (wasteTypes.find(t => t.id === adjWasteType)?.pointsPerKg || 0) * 
+                          (adjCondition === 'Basah' ? 0.6 : 1.0)
+                        ).toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3 text-sm border-t pt-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Jenis Sampah</span>
+                    <span className="font-medium">{selectedTransaction.wasteType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Berat</span>
+                    <span className="font-medium">{selectedTransaction.weight} kg</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Poin</span>
+                    <span className="font-bold text-green-600">{selectedTransaction.totalPoints.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status</span>
+                    {getStatusBadge(selectedTransaction.status)}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <DialogFooter className="flex-col gap-3 sm:flex-row">
@@ -244,11 +343,11 @@ export default function TransactionsPage() {
             </Button>
             {selectedTransaction?.status === 'pending' && (
               <>
-                <Button variant="outline" className="w-full sm:w-auto" onClick={() => selectedTransaction && handleStatusUpdate(selectedTransaction, 'rejected')}>
+                <Button variant="ghost" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 sm:w-auto" onClick={() => selectedTransaction && handleStatusUpdate(selectedTransaction, 'rejected')}>
                   Tolak
                 </Button>
                 <Button className="w-full bg-green-600 hover:bg-green-700 sm:w-auto" onClick={() => selectedTransaction && handleStatusUpdate(selectedTransaction, 'verified')}>
-                  Verifikasi
+                  Verifikasi & Simpan
                 </Button>
               </>
             )}

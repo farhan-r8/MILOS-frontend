@@ -32,6 +32,7 @@ import {
   updateSchedule,
   type ScheduleItem,
 } from '../../lib/milosApi';
+import { SERVICE_CAMPAIGNS, SERVICE_COVERAGE_LABEL, SERVICE_VILLAGE } from '../../lib/serviceArea';
 
 const daysOfWeek = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
@@ -66,6 +67,27 @@ export default function SchedulesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
+
+    // Frontend Validation: check duplicates in local state
+    const isDuplicate = schedules.some((s) => {
+      // If editing, skip the current record
+      if (editingSchedule && s.id_jadwal === editingSchedule.id_jadwal) return false;
+
+      // Check for same wilayah, hari, and jam (ignoring seconds if present)
+      const existingJam = String(s.jam).slice(0, 5);
+      const inputJam = String(formData.jam).slice(0, 5);
+
+      return (
+        s.wilayah.toLowerCase() === formData.wilayah.toLowerCase() &&
+        s.hari === formData.hari &&
+        existingJam === inputJam
+      );
+    });
+
+    if (isDuplicate) {
+      toast.error('Jadwal di wilayah ini pada jam tersebut sudah ada');
+      return;
+    }
 
     try {
       if (editingSchedule) {
@@ -120,12 +142,32 @@ export default function SchedulesPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Kelola Jadwal Pengambilan</h1>
-            <p className="text-gray-600 mt-2">Atur jadwal pengambilan sampah per wilayah.</p>
+            <p className="text-gray-600 mt-2">Atur jadwal pengambilan sampah per wilayah untuk area {SERVICE_COVERAGE_LABEL}.</p>
           </div>
+
+          <Card className="mb-8 border-green-200 bg-green-50">
+            <CardContent className="pt-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-green-900">Panduan jadwal demo {SERVICE_VILLAGE}</h2>
+                  <p className="mt-1 text-sm text-green-800">
+                    Gunakan hari operasional Senin, Selasa, Rabu, dan Jumat. Sistem pickup nasabah akan mengikuti hari yang dipilih dari jadwal admin ini.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {SERVICE_CAMPAIGNS.map((campaign) => (
+                    <Badge key={campaign} className="border-green-200 bg-white text-green-800">
+                      {campaign}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid md:grid-cols-4 gap-6 mb-8">
             <Card>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { Calendar, Clock, MapPin, Package, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Package, CheckCircle2, Info, ListChecks, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ import {
   type ScheduleItem,
   type WasteTypeOption,
 } from '../lib/milosApi';
+import { SERVICE_CAMPAIGNS, SERVICE_COVERAGE_LABEL, SERVICE_VILLAGE } from '../lib/serviceArea';
 
 const dayNameFormatter = new Intl.DateTimeFormat('id-ID', { weekday: 'long' });
 
@@ -57,7 +58,7 @@ export default function PickupPage() {
     pickupDate: '',
     scheduleId: '',
     address: user?.address || '',
-    notes: '',
+    condition: 'Bersih & Kering (Poin 100%)',
   });
 
   useEffect(() => {
@@ -115,16 +116,12 @@ export default function PickupPage() {
     if (!formData.pickupDate) return '';
     return normalizeDayName(dayNameFormatter.format(new Date(formData.pickupDate)));
   }, [formData.pickupDate]);
+  const isSundaySelection = pickupDayName === 'minggu';
 
   const scheduleOptions = useMemo(() => {
     if (!pickupDayName) return [];
     return schedules.filter((schedule) => normalizeDayName(schedule.hari) === pickupDayName);
   }, [pickupDayName, schedules]);
-
-  const availableWasteTypeLabels = useMemo(
-    () => wasteTypes.map((item) => item.label).join(', '),
-    [wasteTypes]
-  );
 
   const availableDaySummaries = useMemo(() => {
     const grouped = new Map<string, Set<string>>();
@@ -176,6 +173,11 @@ export default function PickupPage() {
       return;
     }
 
+    if (isSundaySelection) {
+      toast.error('Hari Minggu tidak melayani pickup.');
+      return;
+    }
+
     if (!formData.scheduleId || !selectedSchedule) {
       toast.error('Pilih jadwal pickup yang tersedia.');
       return;
@@ -197,7 +199,7 @@ export default function PickupPage() {
         pickupDate: formData.pickupDate,
         timeSlot: String(selectedSchedule.jam).slice(0, 5),
         address: formData.address,
-        notes: formData.notes,
+        notes: `Kondisi: ${formData.condition}`,
       });
 
       setSubmitted(true);
@@ -216,50 +218,51 @@ export default function PickupPage() {
     }));
   };
 
+  const availableAreas = useMemo(() => {
+    const areas = new Set<string>();
+    schedules.forEach((s) => areas.add(s.wilayah));
+    return Array.from(areas).sort();
+  }, [schedules]);
+
+  const isOutsideServiceArea = useMemo(() => {
+    if (!formData.address) return false;
+    return !formData.address.toLowerCase().includes(SERVICE_VILLAGE.toLowerCase());
+  }, [formData.address]);
+
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <DashboardNavbar />
-        <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
-            <Card className="text-center">
-              <CardContent className="pt-12 pb-12">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-xl mx-auto">
+            <Card className="border-none shadow-none text-center">
+              <CardContent className="pt-12">
+                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 sm:text-2xl mb-4">Permintaan Pickup Berhasil</h2>
-                <p className="text-gray-600 mb-6">
-                  Permintaan pickup Anda telah dikirim dan akan diproses admin.
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Berhasil Terkirim</h2>
+                <p className="text-gray-500 mb-10">
+                  Permintaan pickup Anda sedang dalam antrean verifikasi admin.
                 </p>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-left">
-                  <h3 className="font-semibold text-gray-900 mb-3">Detail Pickup</h3>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-start gap-2">
-                      <Package className="w-4 h-4 mt-0.5" />
-                      <span>Jenis: {selectedWaste?.label}</span>
+                <div className="bg-gray-50 rounded-3xl p-6 mb-10 text-left">
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                    <div>
+                      <p className="text-gray-400 mb-1 uppercase text-[10px] font-bold tracking-wider">Jenis</p>
+                      <p className="font-semibold text-gray-900">{selectedWaste?.label}</p>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <Calendar className="w-4 h-4 mt-0.5" />
-                      <span>
-                        Tanggal: {new Date(formData.pickupDate).toLocaleDateString('id-ID', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </span>
+                    <div>
+                      <p className="text-gray-400 mb-1 uppercase text-[10px] font-bold tracking-wider">Waktu</p>
+                      <p className="font-semibold text-gray-900">{selectedSchedule ? String(selectedSchedule.jam).slice(0, 5) : '-'} WIB</p>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <Clock className="w-4 h-4 mt-0.5" />
-                      <span>Waktu: {selectedSchedule ? String(selectedSchedule.jam).slice(0, 5) : '-'} WIB</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 mt-0.5" />
-                      <span>Wilayah jadwal: {selectedSchedule?.wilayah || '-'}</span>
+                    <div className="col-span-2">
+                      <p className="text-gray-400 mb-1 uppercase text-[10px] font-bold tracking-wider">Tanggal</p>
+                      <p className="font-semibold text-gray-900">
+                        {new Date(formData.pickupDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <Button className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/dashboard')}>
+                <Button className="w-full h-12 bg-green-600 hover:bg-green-700 rounded-xl font-bold" onClick={() => navigate('/dashboard')}>
                   Kembali ke Dashboard
                 </Button>
               </CardContent>
@@ -271,250 +274,216 @@ export default function PickupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Ajukan Pickup</h1>
-            <p className="text-gray-600 mt-2">
-              Pilih tanggal sesuai hari layanan dan gunakan jadwal pickup yang sudah diatur admin.
-            </p>
-            <p className="mt-2 text-sm text-green-700">
-              Layanan pickup MILOS saat ini difokuskan untuk sekitar Desa Sukamakmur, Kab. Tasikmalaya.
-            </p>
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl font-bold text-gray-900">Permintaan Pickup</h1>
+            <p className="text-gray-500 mt-2">Atur waktu pengambilan sampah Anda dengan mudah.</p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Formulir Pickup</CardTitle>
-                <CardDescription>Pastikan tanggal pickup sesuai jadwal admin yang tersedia.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {!loadingSchedules && schedules.length > 0 && (
-                    <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-                      <div className="mb-2 text-sm font-semibold text-green-900">
-                        Hari layanan yang tersedia
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {availableDaySummaries.map((item) => (
-                          <div
-                            key={item.day}
-                            className="rounded-full border border-green-200 bg-white px-3 py-2 text-xs text-green-800"
+          <Tabs defaultValue="form" className="w-full">
+            <div className="flex justify-center mb-8">
+              <TabsList className="bg-white p-1 rounded-2xl border-none shadow-sm">
+                <TabsTrigger value="form" className="rounded-xl px-6 data-[state=active]:bg-green-50 data-[state=active]:text-green-700">
+                  <ListChecks className="w-4 h-4 mr-2" />
+                  Isi Formulir
+                </TabsTrigger>
+                <TabsTrigger value="info" className="rounded-xl px-6 data-[state=active]:bg-green-50 data-[state=active]:text-green-700">
+                  <Info className="w-4 h-4 mr-2" />
+                  Panduan & Jadwal
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="form">
+              <Card className="border-none shadow-sm rounded-3xl bg-white p-2 sm:p-6">
+                <CardContent className="pt-4">
+                  <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* Left Column: Waste Info */}
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="wasteType" className="text-gray-600 font-semibold">Apa jenis sampahnya?</Label>
+                          <Select
+                            value={formData.wasteType}
+                            onValueChange={(value) => handleChange('wasteType', value)}
+                            disabled={loadingWasteTypes || wasteTypes.length === 0}
                           >
-                            <span className="font-semibold">{item.day}</span>
-                            <span className="text-green-700">
-                              {' '}• {item.areas.join(', ')}
-                            </span>
-                          </div>
-                        ))}
+                            <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50">
+                              <SelectValue placeholder="Pilih jenis sampah" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {wasteTypes.map((type) => (
+                                <SelectItem key={type.id} value={type.id}>
+                                  {type.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="estimatedWeight" className="text-gray-600 font-semibold">Estimasi Berat (kg)</Label>
+                          <Input
+                            id="estimatedWeight"
+                            type="number"
+                            step="0.1"
+                            min="2"
+                            className="h-12 rounded-xl border-gray-100 bg-gray-50/50"
+                            placeholder="Min. 2kg"
+                            value={formData.estimatedWeight}
+                            onChange={(e) => handleChange('estimatedWeight', e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="condition" className="text-gray-600 font-semibold">Kondisi Sampah</Label>
+                          <Select
+                            value={formData.condition}
+                            onValueChange={(value) => handleChange('condition', value)}
+                          >
+                            <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Bersih & Kering (Poin 100%)">Bersih & Kering (Poin 100%)</SelectItem>
+                              <SelectItem value="Kotor/Basah (Potongan Poin 40%)">Kotor/Basah (40% Off)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <p className="mt-3 text-xs text-green-800">
-                        Pilih tanggal yang jatuh pada hari layanan di atas agar jadwal admin muncul.
-                      </p>
+
+                      {/* Right Column: Schedule & Location */}
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="pickupDate" className="text-gray-600 font-semibold">Kapan mau dijemput?</Label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                            <Input
+                              id="pickupDate"
+                              type="date"
+                              className="h-12 pl-10 rounded-xl border-gray-100 bg-gray-50/50"
+                              min={new Date().toISOString().split('T')[0]}
+                              value={formData.pickupDate}
+                              onChange={(e) => handleChange('pickupDate', e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="scheduleId" className="text-gray-600 font-semibold">Pilih Jam Tersedia</Label>
+                          <Select
+                            value={formData.scheduleId}
+                            onValueChange={(value) => handleChange('scheduleId', value)}
+                            disabled={loadingSchedules || !formData.pickupDate || isSundaySelection}
+                          >
+                            <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50">
+                              <SelectValue placeholder={!formData.pickupDate ? 'Pilih tanggal dulu' : 'Pilih jadwal'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {scheduleOptions.map((schedule) => (
+                                <SelectItem key={schedule.id_jadwal} value={String(schedule.id_jadwal)}>
+                                  {schedule.wilayah} • {String(schedule.jam).slice(0, 5)} WIB
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="address" className="text-gray-600 font-semibold">Wilayah Penjemputan</Label>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400 z-10" />
+                            <Select
+                              value={formData.address}
+                              onValueChange={(value) => handleChange('address', value)}
+                              disabled={loadingSchedules || availableAreas.length === 0}
+                            >
+                              <SelectTrigger className={`h-12 pl-10 rounded-xl border-gray-100 bg-gray-50/50 ${isOutsideServiceArea ? 'border-red-300' : ''}`}>
+                                <SelectValue placeholder="Pilih wilayah" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {availableAreas.map((area) => (
+                                  <SelectItem key={area} value={area}>{area}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
 
-                  {!loadingSchedules && schedules.length === 0 && (
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                      Saat ini belum ada jadwal pickup aktif dari admin. Silakan tambahkan jadwal terlebih dahulu di panel admin.
+                    <div className="pt-6 border-t border-gray-50 flex flex-col sm:flex-row gap-3">
+                      <Button
+                        type="submit"
+                        className="flex-1 h-12 bg-green-600 hover:bg-green-700 rounded-xl font-bold shadow-lg shadow-green-100"
+                        disabled={submitting || wasteTypes.length === 0 || isOutsideServiceArea}
+                      >
+                        {submitting ? 'Mengirim...' : 'Kirim Permintaan'}
+                      </Button>
+                      <Button type="button" variant="ghost" className="h-12 rounded-xl text-gray-400" onClick={() => navigate('/dashboard')}>
+                        Batal
+                      </Button>
                     </div>
-                  )}
-
-                  {!loadingWasteTypes && wasteTypes.length === 0 && (
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                      Saat ini belum ada jenis sampah aktif untuk dipilih. Silakan tambahkan atau aktifkan jenis sampah dari panel admin.
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="wasteType">Jenis Sampah *</Label>
-                    <Select
-                      value={formData.wasteType}
-                      onValueChange={(value) => handleChange('wasteType', value)}
-                      disabled={loadingWasteTypes || wasteTypes.length === 0}
-                    >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            loadingWasteTypes
-                              ? 'Memuat jenis sampah...'
-                              : wasteTypes.length === 0
-                              ? 'Belum ada jenis sampah tersedia'
-                              : 'Pilih jenis sampah'
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {wasteTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {availableWasteTypeLabels && (
-                      <p className="text-xs text-gray-500">Pilihan tersedia: {availableWasteTypeLabels}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="estimatedWeight">Estimasi Berat (kg) *</Label>
-                      <Input
-                        id="estimatedWeight"
-                        type="number"
-                        step="0.1"
-                        min="2"
-                        placeholder="Contoh: 5.5"
-                        value={formData.estimatedWeight}
-                        onChange={(e) => handleChange('estimatedWeight', e.target.value)}
-                        required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="pickupDate">Tanggal Pickup *</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="pickupDate"
-                        type="date"
-                        className="pl-10"
-                        min={new Date().toISOString().split('T')[0]}
-                        value={formData.pickupDate}
-                        onChange={(e) => handleChange('pickupDate', e.target.value)}
-                        required
-                      />
-                    </div>
-                    {formData.pickupDate && (
-                      <p className="text-xs text-gray-500">
-                        Hari terpilih: <span className="font-medium capitalize">{dayNameFormatter.format(new Date(formData.pickupDate))}</span>
-                      </p>
-                    )}
-                    {!formData.pickupDate && availableDaySummaries.length > 0 && (
-                      <p className="text-xs text-gray-500">
-                        Contoh hari yang tersedia: {availableDaySummaries.map((item) => item.day).join(', ')}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="scheduleId">Jadwal Admin *</Label>
-                    <Select
-                      value={formData.scheduleId}
-                      onValueChange={(value) => handleChange('scheduleId', value)}
-                      disabled={loadingSchedules || !formData.pickupDate}
-                    >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            !formData.pickupDate
-                              ? 'Pilih tanggal dulu'
-                              : loadingSchedules
-                              ? 'Memuat jadwal...'
-                              : scheduleOptions.length === 0
-                              ? 'Tidak ada jadwal aktif untuk hari ini'
-                              : 'Pilih jadwal pickup'
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {scheduleOptions.map((schedule) => (
-                          <SelectItem key={schedule.id_jadwal} value={String(schedule.id_jadwal)}>
-                            {schedule.wilayah} - {schedule.hari} - {String(schedule.jam).slice(0, 5)} WIB
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedSchedule && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-900">
-                      <div className="font-semibold mb-2">Jadwal yang dipilih</div>
-                      <div>Wilayah: {selectedSchedule.wilayah}</div>
-                      <div>Hari: {selectedSchedule.hari}</div>
-                      <div>Jam: {String(selectedSchedule.jam).slice(0, 5)} WIB</div>
-                      {selectedSchedule.keterangan && (
-                        <div>Keterangan: {selectedSchedule.keterangan}</div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Alamat Pickup *</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Textarea
-                        id="address"
-                        className="pl-10 min-h-24"
-                        placeholder="Alamat lengkap untuk pickup"
-                        aria-label="Alamat pickup"
-                        value={formData.address}
-                        onChange={(e) => handleChange('address', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Gunakan alamat di sekitar Desa Sukamakmur, Kab. Tasikmalaya agar pickup lebih mudah diproses.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Catatan Tambahan (Opsional)</Label>
-                    <Textarea
-                      id="notes"
-                      className="min-h-20"
-                      placeholder="Informasi tambahan seperti patokan lokasi atau kondisi sampah"
-                      value={formData.notes}
-                      onChange={(e) => handleChange('notes', e.target.value)}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <Button
-                      type="submit"
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      disabled={submitting || wasteTypes.length === 0}
-                    >
-                      {submitting ? 'Mengirim...' : 'Ajukan Pickup'}
-                    </Button>
-                    <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/dashboard')}>
-                      Batal
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Informasi Penting</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Sumber Jadwal</h4>
-                    <p className="text-gray-600">Jadwal pickup mengikuti data aktif yang diatur pengurus di sistem.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Pilih Tanggal Dulu</h4>
-                    <p className="text-gray-600">Setelah memilih tanggal, sistem hanya menampilkan jadwal dengan hari yang cocok.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Cakupan Area</h4>
-                    <p className="text-gray-600">Layanan pickup difokuskan untuk sekitar Desa Sukamakmur, Kab. Tasikmalaya.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Minimum Berat</h4>
-                    <p className="text-gray-600">Minimum 2 kg untuk layanan pickup gratis.</p>
-                  </div>
+                  </form>
                 </CardContent>
               </Card>
-            </div>
-          </div>
+            </TabsContent>
+
+            <TabsContent value="info">
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+                  <CardHeader className="bg-green-50/50 border-b border-green-50">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <HelpCircle className="w-5 h-5 text-green-600" />
+                      Informasi Layanan
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-5 text-sm">
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Cakupan Area</h4>
+                      <p className="text-gray-500 leading-relaxed">Saat ini hanya melayani wilayah {SERVICE_COVERAGE_LABEL}.</p>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Potongan Poin</h4>
+                      <p className="text-gray-500 leading-relaxed">Sampah kotor atau basah akan dikenakan potongan 40% dari total poin akhir.</p>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Minimal Berat</h4>
+                      <p className="text-gray-500 leading-relaxed">Layanan pickup gratis tersedia untuk penjemputan minimal 2 kg sampah.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+                  <CardHeader className="bg-blue-50/50 border-b border-blue-50">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                      Jadwal Tersedia
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-gray-50">
+                      {availableDaySummaries.map((item) => (
+                        <div key={item.day} className="p-4 flex items-center justify-between">
+                          <div>
+                            <p className="font-bold text-gray-900">{item.day}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{item.areas.join(', ')}</p>
+                          </div>
+                          <Clock className="w-4 h-4 text-gray-200" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

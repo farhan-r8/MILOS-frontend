@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from 'react-router';
 import { Button } from './ui/button';
-import { Leaf, LogOut, Menu, X, User } from 'lucide-react';
-import { useState } from 'react';
+import { Leaf, LogOut, Menu, X, User, Bell } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Badge } from './ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +15,21 @@ import {
 
 export function DashboardNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const handleNotification = () => {
+      setNotificationCount((prev) => prev + 1);
+    };
+
+    window.addEventListener('milos:realtime', handleNotification);
+    return () => {
+      window.removeEventListener('milos:realtime', handleNotification);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -97,6 +110,24 @@ export function DashboardNavbar() {
             )}
             </div>
 
+            {/* Notifications */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-10 w-10 rounded-full border border-gray-100 bg-white/80 shadow-sm hover:bg-green-50"
+              onClick={() => setNotificationCount(0)}
+            >
+              <Bell className="h-5 w-5 text-gray-600" />
+              {notificationCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[10px] font-bold"
+                >
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </Badge>
+              )}
+            </Button>
+
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -127,12 +158,36 @@ export function DashboardNavbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="rounded-xl border border-gray-100 bg-white/80 p-2 shadow-sm transition hover:bg-green-50 md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            {!isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-10 w-10 rounded-full border border-gray-100 bg-white/80 shadow-sm hover:bg-green-50"
+                onClick={() => {
+                  setNotificationCount(0);
+                  navigate('/notifications');
+                }}
+              >
+                <Bell className="h-5 w-5 text-gray-600" />
+                {notificationCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[10px] font-bold"
+                  >
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </Badge>
+                )}
+              </Button>
+            )}
+
+            <button
+              className="rounded-xl border border-gray-100 bg-white/80 p-2 shadow-sm transition hover:bg-green-50"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}

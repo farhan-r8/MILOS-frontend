@@ -24,6 +24,7 @@ export default function RegisterPage() {
     address: '',
     role: 'nasabah' as const,
   });
+  const [isSidamulih, setIsSidamulih] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -35,6 +36,22 @@ export default function RegisterPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setIsSidamulih(checked);
+    if (checked) {
+      setFormData((prev) => ({
+        ...prev,
+        address: 'Desa Sidamulih, Kab. Tasikmalaya',
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        address: '',
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,21 +197,52 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address">Lokasi / Alamat Lengkap</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-4 h-4 w-4 text-slate-400" />
-                  <Textarea
-                    id="address"
-                    name="address"
-                    placeholder="Jalan, nomor, kelurahan, kecamatan, kota"
-                    className="min-h-24 rounded-2xl border-slate-200 pl-11"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              <div className="flex items-center space-x-2 py-2">
+                <input
+                  type="checkbox"
+                  id="domisili"
+                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  checked={isSidamulih}
+                  onChange={handleCheckboxChange}
+                />
+                <label
+                  htmlFor="domisili"
+                  className="text-sm font-medium leading-none text-slate-700 cursor-pointer"
+                >
+                  Saya tinggal di wilayah Desa Sidamulih
+                </label>
               </div>
+
+              {!isSidamulih ? (
+                <div className="space-y-2">
+                  <Label htmlFor="address">Lokasi / Alamat Lengkap</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-4 h-4 w-4 text-slate-400" />
+                    <Textarea
+                      id="address"
+                      name="address"
+                      placeholder="Jalan, nomor, kelurahan, kecamatan, kota"
+                      className="min-h-24 rounded-2xl border-slate-200 pl-11"
+                      value={formData.address}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 italic">
+                    Layanan pickup hanya tersedia untuk warga Desa Sidamulih
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-100">
+                   <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <div className="text-sm text-emerald-800">
+                        <p className="font-semibold">Alamat Terdeteksi:</p>
+                        <p>{formData.address}</p>
+                      </div>
+                   </div>
+                </div>
+              )}
 
               <Button
                 type="submit"

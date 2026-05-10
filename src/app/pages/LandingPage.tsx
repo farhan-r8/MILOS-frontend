@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { fetchSchedules, fetchWasteTypes, type ScheduleItem, type WasteTypeOption } from '../lib/milosApi';
+import { SERVICE_COVERAGE_LABEL, SERVICE_VILLAGE } from '../lib/serviceArea';
 
 const features = [
   {
@@ -109,7 +110,7 @@ export default function LandingPage() {
                 secara digital agar alur nasabah dan pengurus lebih tertata.
               </p>
               <p className="mb-8 text-sm font-medium text-green-700">
-                Area layanan saat ini difokuskan untuk sekitar Desa Sukamakmur, Kab. Tasikmalaya.
+                Area layanan saat ini difokuskan untuk sekitar {SERVICE_COVERAGE_LABEL}.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button
@@ -319,7 +320,7 @@ export default function LandingPage() {
               Jadwal Pengambilan Sampah
             </h2>
             <p className="text-gray-600">
-              Kalender ini membaca jadwal aktif yang diatur pengurus dari dashboard admin untuk area sekitar Desa Sukamakmur, Kab. Tasikmalaya.
+              Kalender ini membaca jadwal aktif yang diatur pengurus dari dashboard admin untuk area sekitar {SERVICE_COVERAGE_LABEL}.
             </p>
           </div>
 
@@ -505,7 +506,7 @@ export default function LandingPage() {
                       083101095706
                     </a>
                   </li>
-                  <li>Lokasi: Desa Sukamakmur</li>
+                  <li>Lokasi: {SERVICE_VILLAGE}</li>
                   <li>Jam: Senin-Sabtu, 08:00-16:00</li>
                 </ul>
               </div>

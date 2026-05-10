@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashboardNavbar } from '../../components/DashboardNavbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
@@ -38,15 +38,16 @@ import {
   type UserListItem,
 } from '../../lib/milosApi';
 import { useAuth } from '../../context/AuthContext';
+import { useRealtimeRefresh } from '../../hooks/useRealtimeRefresh';
 
 const monthFormatter = new Intl.DateTimeFormat('id-ID', { month: 'short' });
 
 const pickupStatusLabels: Record<string, string> = {
   pending: 'Menunggu Tinjauan',
-  approved: 'Disetujui',
   scheduled: 'Dijadwalkan',
-  completed: 'Selesai',
-  cancelled: 'Dibatalkan',
+  approved: 'Disetujui',
+  done: 'Selesai',
+  rejected: 'Ditolak',
 };
 
 export default function AdminDashboard() {
@@ -60,39 +61,32 @@ export default function AdminDashboard() {
   const [selectedPickup, setSelectedPickup] = useReactState<PickupItem | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useReactState(false);
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadData = useCallback(async () => {
+    if (!token) return;
+    try {
+      const [summaryData, userData, transactionData, pickupData] = await Promise.all([
+        fetchAdminSummary(token),
+        fetchUsers(token),
+        fetchTransactions(),
+        fetchPickups(token),
+      ]);
 
-    const loadData = async () => {
-      if (!token) return;
-      try {
-        const [summaryData, userData, transactionData, pickupData] = await Promise.all([
-          fetchAdminSummary(token),
-          fetchUsers(token),
-          fetchTransactions(),
-          fetchPickups(token),
-        ]);
-
-        if (isMounted) {
-          setSummary(summaryData);
-          setUsers(userData);
-          setTransactions(transactionData);
-          setPickups(pickupData);
-        }
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Gagal memuat dashboard admin.');
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadData();
-    return () => {
-      isMounted = false;
-    };
+      setSummary(summaryData);
+      setUsers(userData);
+      setTransactions(transactionData);
+      setPickups(pickupData);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal memuat dashboard admin.');
+    } finally {
+      setLoading(false);
+    }
   }, [token]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useRealtimeRefresh(Boolean(token), loadData, ['pickup', 'transaction', 'redemption']);
 
   const chartData = useMemo(() => {
     const grouped = new Map<string, { transactions: number; weight: number }>();
@@ -119,16 +113,34 @@ export default function AdminDashboard() {
   const handleAcceptPickup = async (pickup: PickupItem) => {
     if (!token) return;
     try {
-      await updatePickupStatus(token, pickup.rawId, 'approved');
+      await updatePickupStatus(token, pickup.rawId, 'scheduled');
       setPickups((prev) =>
         prev.map((item) =>
-          item.rawId === pickup.rawId ? { ...item, status: 'approved' } : item
+          item.rawId === pickup.rawId ? { ...item, status: 'scheduled' } : item
         )
       );
       setSelectedPickup((current) =>
-        current?.rawId === pickup.rawId ? { ...current, status: 'approved' } : current
+        current?.rawId === pickup.rawId ? { ...current, status: 'scheduled' } : current
       );
-      toast.success('Permintaan pickup berhasil disetujui.');
+      toast.success('Permintaan pickup berhasil dijadwalkan.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal memperbarui pickup.');
+    }
+  };
+
+  const handleRejectPickup = async (pickup: PickupItem) => {
+    if (!token) return;
+    try {
+      await updatePickupStatus(token, pickup.rawId, 'rejected');
+      setPickups((prev) =>
+        prev.map((item) =>
+          item.rawId === pickup.rawId ? { ...item, status: 'rejected' } : item
+        )
+      );
+      setSelectedPickup((current) =>
+        current?.rawId === pickup.rawId ? { ...current, status: 'rejected' } : current
+      );
+      toast.success('Permintaan pickup berhasil ditolak.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Gagal memperbarui pickup.');
     }
@@ -143,14 +155,14 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard Admin</h1>
             <p className="text-gray-600 mt-2">Ringkasan dan statistik Bank Sampah MILOS.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
@@ -362,7 +374,7 @@ export default function AdminDashboard() {
           <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl">
             <DialogHeader>
             <DialogTitle>Tinjau Permintaan Pickup</DialogTitle>
-              <DialogDescription>Periksa detail nasabah dan setujui pickup setelah data terasa sesuai.</DialogDescription>
+              <DialogDescription>Periksa detail nasabah lalu setujui atau tolak pickup sesuai kondisi operasional.</DialogDescription>
             </DialogHeader>
           {selectedPickup && (
             <div className="space-y-4">
@@ -417,8 +429,8 @@ export default function AdminDashboard() {
                 <div className="text-sm bg-gray-50 p-3 rounded-lg">{selectedPickup.notes || '-'}</div>
               </div>
               <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
-                Setelah disetujui, pickup ini akan berpindah ke status <span className="font-semibold">Disetujui</span> dan dapat
-                ditindaklanjuti pada proses operasional berikutnya.
+                Gunakan <span className="font-semibold">Setujui Pickup</span> jika permintaan sesuai jadwal dan area layanan. Gunakan
+                <span className="font-semibold"> Tolak Pickup</span> jika tanggal, area, atau kapasitas tidak memungkinkan.
               </div>
             </div>
           )}
@@ -427,16 +439,30 @@ export default function AdminDashboard() {
               Tutup
             </Button>
             {selectedPickup && (
-              <Button
-                className="w-full bg-green-600 hover:bg-green-700 sm:w-auto"
-                disabled={selectedPickup.status !== 'pending'}
-                onClick={async () => {
-                  await handleAcceptPickup(selectedPickup);
-                  setShowDetailDialog(false);
-                }}
-              >
-                {selectedPickup.status === 'pending' ? 'Setujui Pickup' : 'Pickup Sudah Diproses'}
-              </Button>
+              <>
+                {selectedPickup.status === 'pending' && (
+                  <Button
+                    className="w-full sm:w-auto"
+                    variant="outline"
+                    onClick={async () => {
+                      await handleRejectPickup(selectedPickup);
+                      setShowDetailDialog(false);
+                    }}
+                  >
+                    Tolak Pickup
+                  </Button>
+                )}
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700 sm:w-auto"
+                  disabled={selectedPickup.status !== 'pending'}
+                  onClick={async () => {
+                    await handleAcceptPickup(selectedPickup);
+                    setShowDetailDialog(false);
+                  }}
+                >
+                  {selectedPickup.status === 'pending' ? 'Setujui Pickup' : 'Pickup Sudah Diproses'}
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>
