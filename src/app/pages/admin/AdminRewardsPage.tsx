@@ -159,8 +159,8 @@ export default function AdminRewardsPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
-        <div className="max-w-7xl mx-auto px-4 md:px-0">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
           <div className="mb-8 text-center md:text-left">
             <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3 justify-center md:justify-start">

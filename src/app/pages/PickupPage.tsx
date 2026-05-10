@@ -362,7 +362,7 @@ export default function PickupPage() {
                         <div className="space-y-2">
                           <Label htmlFor="pickupDate" className="text-gray-600 font-semibold">Kapan mau dijemput?</Label>
                           <div className="relative">
-                            <Calendar className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <Input
                               id="pickupDate"
                               type="date"
@@ -398,13 +398,13 @@ export default function PickupPage() {
                         <div className="space-y-2">
                           <Label htmlFor="address" className="text-gray-600 font-semibold">Wilayah Penjemputan</Label>
                           <div className="relative">
-                            <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400 z-10" />
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
                             <Select
                               value={formData.address}
                               onValueChange={(value) => handleChange('address', value)}
                               disabled={loadingSchedules || availableAreas.length === 0}
                             >
-                              <SelectTrigger className={`h-12 pl-10 rounded-xl border-gray-100 bg-gray-50/50 ${isOutsideServiceArea ? 'border-red-300' : ''}`}>
+                              <SelectTrigger className={`h-12 pl-10 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-green-500 focus:border-green-500 ${isOutsideServiceArea ? 'border-red-300' : ''}`}>
                                 <SelectValue placeholder="Pilih wilayah" />
                               </SelectTrigger>
                               <SelectContent>
