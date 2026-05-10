@@ -90,24 +90,24 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
       
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 text-center sm:text-left">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Bell className="w-6 h-6 text-green-600" />
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center justify-center sm:justify-start gap-2">
+                <Bell className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
                 Notifikasi
               </h1>
               <p className="text-sm text-gray-500 mt-1">Pantau aktivitas akun Anda secara real-time.</p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={markAllAsRead} disabled={notifications.length === 0}>
+            <div className="flex justify-center gap-2">
+              <Button variant="ghost" size="sm" onClick={markAllAsRead} disabled={notifications.length === 0} className="text-xs">
                 Tandai Dibaca
               </Button>
-              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={clearAll} disabled={notifications.length === 0}>
+              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 text-xs" onClick={clearAll} disabled={notifications.length === 0}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 Hapus Semua
               </Button>

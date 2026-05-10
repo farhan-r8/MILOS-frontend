@@ -115,10 +115,15 @@ export function DashboardNavbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-10 w-10 rounded-full border border-gray-100 bg-white/80 shadow-sm hover:bg-green-50"
-                onClick={() => setNotificationCount(0)}
+                className={`relative h-10 w-10 rounded-full border border-gray-100 bg-white/80 shadow-sm transition-colors ${
+                  location.pathname === '/notifications' ? 'bg-green-50 ring-2 ring-green-100' : 'hover:bg-green-50'
+                }`}
+                onClick={() => {
+                  setNotificationCount(0);
+                  navigate('/notifications');
+                }}
               >
-                <Bell className="h-5 w-5 text-gray-600" />
+                <Bell className={`h-5 w-5 ${location.pathname === '/notifications' ? 'text-green-600' : 'text-gray-600'}`} />
                 {notificationCount > 0 && (
                   <Badge
                     variant="destructive"
@@ -165,13 +170,15 @@ export function DashboardNavbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-10 w-10 rounded-full border border-gray-100 bg-white/80 shadow-sm hover:bg-green-50"
+                className={`relative h-10 w-10 rounded-full border border-gray-100 bg-white/80 shadow-sm transition-colors ${
+                  location.pathname === '/notifications' ? 'bg-green-50 ring-2 ring-green-100' : 'hover:bg-green-50'
+                }`}
                 onClick={() => {
                   setNotificationCount(0);
                   navigate('/notifications');
                 }}
               >
-                <Bell className="h-5 w-5 text-gray-600" />
+                <Bell className={`h-5 w-5 ${location.pathname === '/notifications' ? 'text-green-600' : 'text-gray-600'}`} />
                 {notificationCount > 0 && (
                   <Badge
                     variant="destructive"

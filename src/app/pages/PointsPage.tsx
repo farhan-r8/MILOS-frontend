@@ -91,48 +91,68 @@ export default function PointsPage() {
     <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
-        <div className="max-w-7xl mx-auto px-4 md:px-0">
-          <div className="mb-10 text-center md:text-left">
-            <h1 className="text-3xl font-bold text-gray-900">Poin & Hadiah</h1>
-            <p className="text-gray-500 mt-2">Dapatkan berbagai keuntungan dari tabungan sampah Anda.</p>
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Navigation Toggle */}
+          <div className="flex justify-center mb-8">
+            <div className="inline-flex p-1 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <Button 
+                variant="ghost" 
+                className="rounded-xl px-4 sm:px-8 bg-green-50 text-green-700 hover:bg-green-100 font-bold"
+                onClick={() => navigate('/points')}
+              >
+                Statistik Poin
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="rounded-xl px-4 sm:px-8 text-gray-500 hover:text-green-600 font-medium"
+                onClick={() => navigate('/rewards')}
+              >
+                Katalog Hadiah
+              </Button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <Card className="border-none bg-green-600 text-white shadow-xl shadow-green-100 rounded-3xl md:col-span-1">
+          <div className="mb-10 text-center md:text-left">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Poin & Hadiah</h1>
+            <p className="text-gray-500 mt-2 text-sm md:text-base">Dapatkan berbagai keuntungan dari tabungan sampah Anda.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10">
+            <Card className="border-none bg-green-600 text-white shadow-xl shadow-green-100 rounded-3xl">
               <CardHeader className="pb-2">
-                <span className="text-green-100 text-xs font-medium uppercase tracking-wider">Saldo Poin</span>
-                <CardTitle className="text-4xl pt-2">{currentPoints.toLocaleString()}</CardTitle>
+                <span className="text-green-100 text-[10px] md:text-xs font-medium uppercase tracking-wider">Saldo Poin</span>
+                <CardTitle className="text-3xl md:text-4xl pt-2">{currentPoints.toLocaleString()}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-1.5 text-green-50 text-xs">
+                <div className="flex items-center gap-1.5 text-green-50 text-[10px] md:text-xs">
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span>+{currentMonthPoints.toLocaleString()} poin bulan ini</span>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-none bg-white shadow-sm rounded-3xl md:col-span-2">
-              <CardContent className="p-6">
-                <div className="flex flex-col sm:flex-row items-center gap-6">
+            <Card className="border-none bg-white shadow-sm rounded-3xl sm:col-span-2">
+              <CardContent className="p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6">
                   <div className="relative shrink-0">
-                    <div className="w-20 h-20 rounded-full border-4 border-yellow-50 flex items-center justify-center bg-yellow-100">
-                      <Trophy className="w-10 h-10 text-yellow-600" />
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-yellow-50 flex items-center justify-center bg-yellow-100">
+                      <Trophy className="w-8 h-8 md:w-10 md:h-10 text-yellow-600" />
                     </div>
                     <div className="absolute -bottom-1 -right-1 bg-white shadow-sm rounded-full p-1 border border-yellow-100">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <Star className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-500 fill-yellow-500" />
                     </div>
                   </div>
-                  <div className="flex-1 w-full space-y-3">
+                  <div className="flex-1 w-full space-y-3 text-center sm:text-left">
                     <div className="flex justify-between items-end">
                       <div>
                         <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Level Saat Ini</p>
-                        <p className="text-xl font-bold text-gray-900">{level.label}</p>
+                        <p className="text-lg md:text-xl font-bold text-gray-900">{level.label}</p>
                       </div>
-                      <p className="text-xs font-bold text-yellow-600">{level.progress}%</p>
+                      <p className="text-[10px] md:text-xs font-bold text-yellow-600">{level.progress}%</p>
                     </div>
-                    <Progress value={level.progress} className="h-2 bg-yellow-50" />
-                    <p className="text-xs text-gray-500">
+                    <Progress value={level.progress} className="h-1.5 md:h-2 bg-yellow-50" />
+                    <p className="text-[10px] md:text-xs text-gray-500">
                       {level.next ? `Butuh ${level.remaining.toLocaleString()} poin lagi untuk naik ke ${level.next}` : 'Anda telah mencapai level tertinggi!'}
                     </p>
                   </div>
@@ -142,14 +162,14 @@ export default function PointsPage() {
           </div>
 
           <Tabs defaultValue="stats" className="space-y-8">
-            <div className="flex justify-center">
-              <TabsList className="bg-white p-1 rounded-2xl shadow-sm">
-                <TabsTrigger value="stats" className="rounded-xl px-6">
-                  <TrendingUp className="w-4 h-4 mr-2" />
+            <div className="flex justify-center overflow-x-auto pb-2 scrollbar-hide">
+              <TabsList className="bg-white p-1 rounded-2xl shadow-sm min-w-max">
+                <TabsTrigger value="stats" className="rounded-xl px-4 md:px-6 text-xs md:text-sm">
+                  <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" />
                   Statistik
                 </TabsTrigger>
-                <TabsTrigger value="badges" className="rounded-xl px-6">
-                  <Star className="w-4 h-4 mr-2" />
+                <TabsTrigger value="badges" className="rounded-xl px-4 md:px-6 text-xs md:text-sm">
+                  <Star className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" />
                   Pencapaian
                   {unlockedAchievements > 0 && (
                     <Badge className="ml-2 bg-yellow-500 text-[10px] px-1.5 h-4 min-w-[16px] flex items-center justify-center border-none text-white">
@@ -157,8 +177,8 @@ export default function PointsPage() {
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="catalog" className="rounded-xl px-6">
-                  <Gift className="w-4 h-4 mr-2" />
+                <TabsTrigger value="catalog" className="rounded-xl px-4 md:px-6 text-xs md:text-sm">
+                  <Gift className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" />
                   Katalog
                 </TabsTrigger>
               </TabsList>

@@ -63,17 +63,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.22),_transparent_35%),linear-gradient(135deg,#f4fbf6_0%,#ebf7ee_45%,#f8fffb_100%)] flex items-center justify-center p-4">
-      <Link
-        to="/"
-        className="fixed top-6 left-6 flex items-center gap-2 rounded-full border border-emerald-100 bg-white/90 px-4 py-2 text-gray-700 shadow-sm transition hover:border-emerald-200 hover:text-green-700"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="font-medium">Beranda</span>
-      </Link>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.22),_transparent_35%),linear-gradient(135deg,#f4fbf6_0%,#ebf7ee_45%,#f8fffb_100%)] flex flex-col items-center justify-center p-4 md:p-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/"
+            className="flex items-center gap-2 rounded-full border border-emerald-100 bg-white/90 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:border-emerald-200 hover:text-green-700"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Beranda</span>
+          </Link>
+        </div>
 
-      <div className="w-full max-w-md">
-        <div className="mb-8 flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-200/70">
             <Leaf className="w-7 h-7 text-white" />
           </div>
@@ -83,71 +85,71 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Card className="overflow-hidden rounded-[28px] border-emerald-100/80 bg-white/95 shadow-[0_24px_80px_-32px_rgba(16,185,129,0.55)]">
+        <Card className="overflow-hidden rounded-[2.5rem] border-emerald-100/80 bg-white/95 shadow-[0_24px_80px_-32px_rgba(16,185,129,0.55)]">
           <div className="h-2 bg-gradient-to-r from-emerald-500 via-lime-400 to-teal-500" />
-          <CardHeader className="space-y-3 pb-4">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
+          <CardHeader className="space-y-4 p-6 md:p-8 pb-4">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600">
               <span>Sign In</span>
-              <span>{role === 'admin' ? 'Admin' : 'Nasabah'}</span>
+              <Badge variant="outline" className="rounded-lg border-emerald-100 bg-emerald-50 text-emerald-700">{role === 'admin' ? 'Admin' : 'Nasabah'}</Badge>
             </div>
-            <CardTitle className="text-3xl text-slate-900">Masuk ke MILOS</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl md:text-3xl text-slate-900">Masuk ke MILOS</CardTitle>
+            <CardDescription className="text-xs md:text-sm">
               Nasabah mendaftar dengan email dan password. Setelah akun terdaftar, Google bisa dipakai sebagai alternatif login untuk email yang sama.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-3 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
-              <div className="rounded-2xl bg-white/80 p-3 shadow-sm">
+          <CardContent className="space-y-6 p-6 md:p-8 pt-0">
+            <div className="grid grid-cols-2 gap-3 rounded-[1.5rem] bg-emerald-50/50 p-3 text-[10px] md:text-xs text-emerald-900">
+              <div className="rounded-2xl bg-white/80 p-3 shadow-sm border border-emerald-100/50">
                 <Recycle className="mb-2 h-4 w-4 text-emerald-600" />
-                <div className="font-semibold">Nasabah</div>
-                <div className="mt-1 text-xs text-emerald-700">Setor sampah, cek poin, dan tukar reward.</div>
+                <div className="font-bold">Nasabah</div>
+                <div className="mt-1 text-emerald-700 leading-tight">Setor sampah, cek poin, dan tukar reward.</div>
               </div>
-              <div className="rounded-2xl bg-white/80 p-3 shadow-sm">
+              <div className="rounded-2xl bg-white/80 p-3 shadow-sm border border-emerald-100/50">
                 <ShieldCheck className="mb-2 h-4 w-4 text-emerald-600" />
-                <div className="font-semibold">Admin</div>
-                <div className="mt-1 text-xs text-emerald-700">Kelola transaksi, pickup, dan dashboard.</div>
+                <div className="font-bold">Admin</div>
+                <div className="mt-1 text-emerald-700 leading-tight">Kelola transaksi, pickup, dan dashboard.</div>
               </div>
             </div>
 
             <div className="space-y-4">
               {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert variant="destructive" className="rounded-2xl border-red-100 bg-red-50 text-red-900">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-xs">{error}</AlertDescription>
                 </Alert>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="role">Masuk Sebagai</Label>
+                <Label htmlFor="role" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Masuk Sebagai</Label>
                 <Select
                   value={role}
                   onValueChange={(value) => setRole(value as 'nasabah' | 'admin')}
                 >
-                  <SelectTrigger className="h-12 w-full rounded-2xl border-emerald-100">
+                  <SelectTrigger className="h-12 w-full rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-emerald-500">
                     <div className="flex items-center gap-2">
-                      <UserCog className="h-4 w-4" />
+                      <UserCog className="h-4 w-4 text-emerald-600" />
                       <SelectValue placeholder="Pilih role">
                         {role === 'admin' ? 'Pengurus/Admin' : 'Nasabah'}
                       </SelectValue>
                     </div>
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="nasabah">Nasabah</SelectItem>
-                    <SelectItem value="admin">Pengurus/Admin</SelectItem>
+                  <SelectContent className="rounded-2xl border-emerald-100">
+                    <SelectItem value="nasabah" className="rounded-xl focus:bg-emerald-50 focus:text-emerald-900">Nasabah</SelectItem>
+                    <SelectItem value="admin" className="rounded-xl focus:bg-emerald-50 focus:text-emerald-900">Pengurus/Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Alamat Email</Label>
+                  <Label htmlFor="email" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Alamat Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <Input
                       id="email"
                       type="email"
                       placeholder={role === 'admin' ? 'admin@milos.id' : 'akun.google.aktif@gmail.com'}
-                      className="h-14 rounded-2xl border-slate-200 pl-11"
+                      className="h-12 md:h-14 rounded-2xl border-slate-100 bg-slate-50/50 pl-11 focus:ring-emerald-500"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -156,12 +158,12 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center justify-between ml-1">
+                    <Label htmlFor="password" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Password</Label>
                     {role === 'admin' ? (
-                      <span className="text-xs font-medium text-emerald-600">Akses pengurus</span>
+                      <span className="text-[10px] font-bold text-emerald-600 uppercase">Akses pengurus</span>
                     ) : (
-                      <Link to="/forgot-password" className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
+                      <Link to="/forgot-password" title="Klik untuk mereset password" className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase">
                         Lupa password?
                       </Link>
                     )}
@@ -172,7 +174,7 @@ export default function LoginPage() {
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Masukkan password Anda"
-                      className="h-14 rounded-2xl border-slate-200 pl-11 pr-12"
+                      className="h-12 md:h-14 rounded-2xl border-slate-100 bg-slate-50/50 pl-11 pr-12 focus:ring-emerald-500"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -190,7 +192,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="h-14 w-full rounded-2xl bg-emerald-600 text-base font-semibold shadow-lg shadow-emerald-200 transition hover:bg-emerald-700"
+                  className="h-12 md:h-14 w-full rounded-2xl bg-emerald-600 text-sm md:text-base font-bold shadow-lg shadow-emerald-200/50 transition hover:bg-emerald-700 hover:shadow-emerald-300/50"
                   disabled={loading}
                 >
                   {loading ? 'Memproses...' : `Masuk sebagai ${role === 'admin' ? 'Admin' : 'Nasabah'}`}
@@ -199,31 +201,25 @@ export default function LoginPage() {
 
               {role === 'nasabah' && (
                 <>
-                  <div className="relative py-2 text-center text-sm text-slate-400">
+                  <div className="relative py-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <span className="relative z-10 bg-white px-3">Atau login dengan</span>
-                    <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-slate-200" />
+                    <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-slate-100" />
                   </div>
                   <GoogleIdentityButton text="signin_with" onCredential={handleGoogleLogin} />
                 </>
               )}
 
               {role === 'admin' && (
-                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
-                  Akun pengurus tidak didaftarkan dari halaman publik dan wajib memakai email aktif yang valid. Admin dibuat secara internal oleh pengurus atau langsung dari database.
+                <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 text-[10px] md:text-xs text-blue-900 leading-relaxed italic">
+                  Akun pengurus tidak didaftarkan dari halaman publik. Admin dibuat secara internal oleh pengurus atau langsung dari database.
                 </div>
               )}
             </div>
 
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-gray-600 pt-2 border-t border-slate-50">
               Belum punya akun nasabah?{' '}
-              <Link to="/register" className="text-green-600 hover:text-green-700 font-semibold">
-                Create an account
-              </Link>
-            </div>
-
-            <div className="text-center">
-              <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">
-                Kembali ke beranda
+              <Link to="/register" className="text-emerald-600 hover:text-emerald-700 font-bold">
+                Daftar Sekarang
               </Link>
             </div>
           </CardContent>

@@ -95,20 +95,20 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
-        <div className="max-w-7xl mx-auto px-4 md:px-0">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
             <div className="text-center md:text-left">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Halo, {user?.name.split(' ')[0]}!</h1>
-              <p className="text-gray-500 mt-1">Berikut adalah ringkasan aktivitas tabungan sampah Anda.</p>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Halo, {user?.name.split(' ')[0]}!</h1>
+              <p className="text-gray-500 mt-1 text-sm md:text-base">Berikut adalah ringkasan aktivitas tabungan sampah Anda.</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <Button onClick={() => navigate('/sell')} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-200/50">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-3">
+              <Button onClick={() => navigate('/sell')} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-200/50 h-11 md:h-12 text-sm">
                 <Package className="w-4 h-4 mr-2" />
                 Jual Sampah
               </Button>
-              <Button variant="outline" onClick={() => navigate('/pickup')} className="w-full sm:w-auto rounded-xl bg-white border-gray-200">
+              <Button variant="outline" onClick={() => navigate('/pickup')} className="w-full sm:w-auto rounded-xl bg-white border-gray-200 h-11 md:h-12 text-sm">
                 Ajukan Pickup
               </Button>
             </div>
@@ -119,14 +119,14 @@ export default function Dashboard() {
             <Card className="border-none bg-green-600 text-white shadow-xl shadow-green-100 rounded-3xl">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-green-100 text-sm font-medium uppercase tracking-wider">Total Poin</span>
-                  <Award className="w-5 h-5 text-green-200" />
+                  <span className="text-green-100 text-[10px] md:text-xs font-medium uppercase tracking-wider">Total Poin</span>
+                  <Award className="w-4 h-4 md:w-5 md:h-5 text-green-200" />
                 </div>
-                <CardTitle className="text-3xl pt-2">{totalPoints.toLocaleString()}</CardTitle>
+                <CardTitle className="text-2xl md:text-3xl pt-2">{totalPoints.toLocaleString()}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-1.5 text-green-50 text-xs">
-                  <TrendingUp className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 text-green-50 text-[10px] md:text-xs">
+                  <TrendingUp className="w-3 h-3 md:w-3.5 md:h-3.5" />
                   <span>{verifiedTransactions.length} transaksi sukses</span>
                 </div>
               </CardContent>
@@ -135,30 +135,30 @@ export default function Dashboard() {
             <Card className="border-none bg-white shadow-sm rounded-3xl">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">Total Sampah</span>
-                  <Recycle className="w-5 h-5 text-blue-500" />
+                  <span className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider">Total Sampah</span>
+                  <Recycle className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
                 </div>
-                <CardTitle className="text-3xl pt-2">{totalWeight.toFixed(1)} <span className="text-lg font-normal text-gray-400">kg</span></CardTitle>
+                <CardTitle className="text-2xl md:text-3xl pt-2">{totalWeight.toFixed(1)} <span className="text-sm md:text-lg font-normal text-gray-400">kg</span></CardTitle>
               </CardHeader>
             </Card>
 
             <Card className="border-none bg-white shadow-sm rounded-3xl">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">Transaksi</span>
-                  <Activity className="w-5 h-5 text-purple-500" />
+                  <span className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider">Transaksi</span>
+                  <Activity className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
                 </div>
-                <CardTitle className="text-3xl pt-2">{transactions.length}</CardTitle>
+                <CardTitle className="text-2xl md:text-3xl pt-2">{transactions.length}</CardTitle>
               </CardHeader>
             </Card>
 
             <Card className="border-none bg-white shadow-sm rounded-3xl">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">Pending</span>
-                  <Clock className="w-5 h-5 text-amber-500" />
+                  <span className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider">Pending</span>
+                  <Clock className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
                 </div>
-                <CardTitle className="text-3xl pt-2 text-amber-600">{pendingTransactions}</CardTitle>
+                <CardTitle className="text-2xl md:text-3xl pt-2 text-amber-600">{pendingTransactions}</CardTitle>
               </CardHeader>
             </Card>
           </div>

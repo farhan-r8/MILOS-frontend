@@ -123,41 +123,61 @@ export default function RewardsPage() {
     <div className="min-h-screen bg-[#F9FAFB]">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
-        <div className="max-w-7xl mx-auto px-4 md:px-0">
-          <div className="mb-10 text-center md:text-left">
-            <h1 className="text-3xl font-bold text-gray-900">Katalog Hadiah</h1>
-            <p className="text-gray-500 mt-2">Gunakan poin tabungan sampah Anda untuk mendapatkan hadiah menarik.</p>
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Navigation Toggle */}
+          <div className="flex justify-center mb-8">
+            <div className="inline-flex p-1 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <Button 
+                variant="ghost" 
+                className="rounded-xl px-4 sm:px-8 text-gray-500 hover:text-green-600 font-medium"
+                onClick={() => navigate('/points')}
+              >
+                Statistik Poin
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="rounded-xl px-4 sm:px-8 bg-green-50 text-green-700 hover:bg-green-100 font-bold"
+                onClick={() => navigate('/rewards')}
+              >
+                Katalog Hadiah
+              </Button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="mb-10 text-center md:text-left">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Katalog Hadiah</h1>
+            <p className="text-gray-500 mt-2 text-sm md:text-base">Gunakan poin tabungan sampah Anda untuk mendapatkan hadiah menarik.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
             <Card className="border-none bg-green-600 text-white shadow-xl shadow-green-100 rounded-3xl md:col-span-2">
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
                   <div className="text-center sm:text-left">
                     <p className="text-green-100 text-[10px] uppercase font-bold tracking-wider">Saldo Poin Anda</p>
                     <div className="flex items-center gap-2 mt-1 justify-center sm:justify-start">
-                      <Coins className="w-8 h-8 text-green-200" />
-                      <p className="text-4xl font-black">{currentPoints.toLocaleString()}</p>
+                      <Coins className="w-6 h-6 md:w-8 md:h-8 text-green-200" />
+                      <p className="text-3xl md:text-4xl font-black">{currentPoints.toLocaleString()}</p>
                     </div>
-                    <p className="text-green-100/70 text-xs mt-1">Setara Rp {(currentPoints / POINTS_TO_RUPIAH_DIVISOR).toLocaleString('id-ID')}</p>
+                    <p className="text-green-100/70 text-[10px] md:text-xs mt-1">Setara Rp {(currentPoints / POINTS_TO_RUPIAH_DIVISOR).toLocaleString('id-ID')}</p>
                   </div>
                   <div className="h-12 w-px bg-green-500 hidden sm:block opacity-30" />
                   <div className="text-center sm:text-right">
                     <p className="text-green-100 text-[10px] uppercase font-bold tracking-wider">Permintaan Aktif</p>
-                    <p className="text-3xl font-bold mt-1">{pendingRedemptions.length}</p>
-                    <p className="text-green-100/70 text-xs mt-1">Dalam proses pengiriman</p>
+                    <p className="text-2xl md:text-3xl font-bold mt-1">{pendingRedemptions.length}</p>
+                    <p className="text-green-100/70 text-[10px] md:text-xs mt-1">Dalam proses pengiriman</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-none bg-white shadow-sm rounded-3xl flex items-center p-6">
+            <Card className="border-none bg-white shadow-sm rounded-3xl flex items-center p-4 md:p-6">
                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
-                    <Info className="w-6 h-6 text-blue-500" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+                    <Info className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
                   </div>
-                  <div className="text-xs">
+                  <div className="text-[10px] md:text-xs">
                     <p className="font-bold text-gray-900 uppercase tracking-tighter">Info Pengiriman</p>
                     <p className="text-gray-500 mt-0.5">Hadiah akan dikirim ke alamat terdaftar atau sesuai input form.</p>
                   </div>
@@ -166,14 +186,14 @@ export default function RewardsPage() {
           </div>
 
           <Tabs defaultValue="catalog" className="space-y-8">
-            <div className="flex justify-center">
-              <TabsList className="bg-white p-1 rounded-2xl shadow-sm">
-                <TabsTrigger value="catalog" className="rounded-xl px-6">
-                  <Gift className="w-4 h-4 mr-2" />
+            <div className="flex justify-center overflow-x-auto pb-2 scrollbar-hide">
+              <TabsList className="bg-white p-1 rounded-2xl shadow-sm min-w-max">
+                <TabsTrigger value="catalog" className="rounded-xl px-4 md:px-6 text-xs md:text-sm">
+                  <Gift className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" />
                   Katalog Hadiah
                 </TabsTrigger>
-                <TabsTrigger value="history" className="rounded-xl px-6">
-                  <History className="w-4 h-4 mr-2" />
+                <TabsTrigger value="history" className="rounded-xl px-4 md:px-6 text-xs md:text-sm">
+                  <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" />
                   Riwayat Tukar
                 </TabsTrigger>
               </TabsList>

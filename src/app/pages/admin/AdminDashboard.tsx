@@ -155,8 +155,8 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNavbar />
 
-      <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
-        <div className="max-w-7xl mx-auto px-4 md:px-0">
+      <div className="pt-24 pb-12 container mx-auto px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
           <div className="mb-8 text-center md:text-left">
             <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard Admin</h1>
             <p className="text-gray-600 mt-2">Ringkasan dan statistik Bank Sampah MILOS.</p>
