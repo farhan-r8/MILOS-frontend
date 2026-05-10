@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { Calendar, Clock, MapPin, Package, CheckCircle2, Info, ListChecks, HelpCircle } from 'lucide-react';
+import { Calendar, Clock, Package, CheckCircle2, Info, ListChecks, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -23,7 +23,7 @@ import {
   type ScheduleItem,
   type WasteTypeOption,
 } from '../lib/milosApi';
-import { SERVICE_CAMPAIGNS, SERVICE_COVERAGE_LABEL, SERVICE_VILLAGE } from '../lib/serviceArea';
+import { SERVICE_CAMPAIGNS, SERVICE_COVERAGE_LABEL } from '../lib/serviceArea';
 
 const dayNameFormatter = new Intl.DateTimeFormat('id-ID', { weekday: 'long' });
 
@@ -218,17 +218,6 @@ export default function PickupPage() {
     }));
   };
 
-  const availableAreas = useMemo(() => {
-    const areas = new Set<string>();
-    schedules.forEach((s) => areas.add(s.wilayah));
-    return Array.from(areas).sort();
-  }, [schedules]);
-
-  const isOutsideServiceArea = useMemo(() => {
-    if (!formData.address) return false;
-    return !formData.address.toLowerCase().includes(SERVICE_VILLAGE.toLowerCase());
-  }, [formData.address]);
-
   if (submitted) {
     return (
       <div className="min-h-screen bg-white">
@@ -394,27 +383,6 @@ export default function PickupPage() {
                             </SelectContent>
                           </Select>
                         </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="address" className="text-gray-600 font-semibold">Wilayah Penjemputan</Label>
-                          <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
-                            <Select
-                              value={formData.address}
-                              onValueChange={(value) => handleChange('address', value)}
-                              disabled={loadingSchedules || availableAreas.length === 0}
-                            >
-                              <SelectTrigger className={`h-12 pl-10 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-green-500 focus:border-green-500 ${isOutsideServiceArea ? 'border-red-300' : ''}`}>
-                                <SelectValue placeholder="Pilih wilayah" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {availableAreas.map((area) => (
-                                  <SelectItem key={area} value={area}>{area}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
                       </div>
                     </div>
 
@@ -422,7 +390,7 @@ export default function PickupPage() {
                       <Button
                         type="submit"
                         className="flex-1 h-12 bg-green-600 hover:bg-green-700 rounded-xl font-bold shadow-lg shadow-green-100"
-                        disabled={submitting || wasteTypes.length === 0 || isOutsideServiceArea}
+                        disabled={submitting || wasteTypes.length === 0}
                       >
                         {submitting ? 'Mengirim...' : 'Kirim Permintaan'}
                       </Button>
