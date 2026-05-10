@@ -125,26 +125,6 @@ export default function RewardsPage() {
 
       <div className="pt-24 pb-12 container mx-auto px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Navigation Toggle */}
-          <div className="flex justify-center mb-8">
-            <div className="inline-flex p-1 bg-white rounded-2xl shadow-sm border border-gray-100">
-              <Button 
-                variant="ghost" 
-                className="rounded-xl px-4 sm:px-8 text-gray-500 hover:text-green-600 font-medium"
-                onClick={() => navigate('/points')}
-              >
-                Statistik Poin
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="rounded-xl px-4 sm:px-8 bg-green-50 text-green-700 hover:bg-green-100 font-bold"
-                onClick={() => navigate('/rewards')}
-              >
-                Katalog Hadiah
-              </Button>
-            </div>
-          </div>
-
           <div className="mb-10 text-center md:text-left">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Katalog Hadiah</h1>
             <p className="text-gray-500 mt-2 text-sm md:text-base">Gunakan poin tabungan sampah Anda untuk mendapatkan hadiah menarik.</p>
@@ -187,12 +167,12 @@ export default function RewardsPage() {
 
           <Tabs defaultValue="catalog" className="space-y-8">
             <div className="flex justify-center overflow-x-auto pb-2 scrollbar-hide">
-              <TabsList className="bg-white p-1 rounded-2xl shadow-sm min-w-max">
-                <TabsTrigger value="catalog" className="rounded-xl px-4 md:px-6 text-xs md:text-sm">
+              <TabsList className="bg-white p-1 rounded-full shadow-sm min-w-max border border-gray-100">
+                <TabsTrigger value="catalog" className="rounded-full px-4 md:px-6 text-xs md:text-sm data-[state=active]:bg-green-100 data-[state=active]:text-green-700 data-[state=active]:shadow-none transition-all">
                   <Gift className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" />
                   Katalog Hadiah
                 </TabsTrigger>
-                <TabsTrigger value="history" className="rounded-xl px-4 md:px-6 text-xs md:text-sm">
+                <TabsTrigger value="history" className="rounded-full px-4 md:px-6 text-xs md:text-sm data-[state=active]:bg-green-100 data-[state=active]:text-green-700 data-[state=active]:shadow-none transition-all">
                   <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" />
                   Riwayat Tukar
                 </TabsTrigger>
