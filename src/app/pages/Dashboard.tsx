@@ -82,7 +82,14 @@ export default function Dashboard() {
         grouped.set(key, (grouped.get(key) || 0) + transaction.totalPoints);
       });
 
-    return Array.from(grouped.entries()).map(([month, points]) => ({ month, points }));
+    const result = Array.from(grouped.entries()).map(([month, points]) => ({ month, points }));
+    
+    // Fallback data if empty
+    if (result.length === 0) {
+      return [{ month: monthFormatter.format(new Date()), points: 0 }];
+    }
+    
+    return result;
   }, [transactions]);
 
   const recentTransactions = transactions.slice(0, 5);
@@ -191,14 +198,9 @@ export default function Dashboard() {
                       <CardDescription>Poin yang Anda kumpulkan tiap bulannya.</CardDescription>
                     </CardHeader>
                     <CardContent className="px-0 pb-0">
-                      {chartData.length > 0 ? (
+                      <div className="h-72 w-full">
                         <SimpleBarChart data={chartData} />
-                      ) : (
-                        <div className="py-20 flex flex-col items-center justify-center text-center">
-                          <Activity className="w-12 h-12 text-gray-200 mb-4" />
-                          <p className="text-sm text-gray-400">Belum ada data transaksi.</p>
-                        </div>
-                      )}
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>

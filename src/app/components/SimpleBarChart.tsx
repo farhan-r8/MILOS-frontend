@@ -11,7 +11,7 @@ export function SimpleBarChart({ data }: SimpleBarChartProps) {
   const maxPoints = Math.max(...data.map(d => d.points));
 
   return (
-    <div className="w-full h-[300px] flex flex-col relative">
+    <div className="w-full h-full flex flex-col relative">
       {/* Horizontal grid lines */}
       <div className="absolute inset-0 flex flex-col justify-between pointer-events-none px-4 py-8">
         {[0, 1, 2, 3, 4].map((i) => (
@@ -21,7 +21,7 @@ export function SimpleBarChart({ data }: SimpleBarChartProps) {
 
       <div className="flex-1 flex items-end justify-between gap-4 px-4 relative z-10">
         {data.map((item, index) => {
-          const heightPercent = (item.points / maxPoints) * 100;
+          const heightPercent = maxPoints > 0 ? (item.points / maxPoints) * 100 : 0;
 
           return (
             <div key={`${item.month}-${index}`} className="flex-1 flex flex-col items-center gap-3">

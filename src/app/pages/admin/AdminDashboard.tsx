@@ -99,12 +99,24 @@ export default function AdminDashboard() {
       });
     });
 
-    return Array.from(grouped.entries()).map(([month, value], index) => ({
+    const result = Array.from(grouped.entries()).map(([month, value], index) => ({
       id: `stat-${index + 1}`,
       month,
       transactions: value.transactions,
       weight: Number(value.weight.toFixed(1)),
     }));
+
+    // Fallback data if empty
+    if (result.length === 0) {
+      return [{
+        id: 'stat-fallback',
+        month: monthFormatter.format(new Date()),
+        transactions: 0,
+        weight: 0,
+      }];
+    }
+
+    return result;
   }, [transactions]);
 
   const recentTransactions = transactions.slice(0, 5);
@@ -231,11 +243,9 @@ export default function AdminDashboard() {
                 <CardDescription>Transaksi dan berat sampah berdasarkan data backend.</CardDescription>
               </CardHeader>
               <CardContent>
-                {chartData.length > 0 ? (
+                <div className="h-72 w-full">
                   <DualBarChart data={chartData} />
-                ) : (
-                  <div className="text-sm text-gray-500 py-8 text-center">Belum ada data transaksi.</div>
-                )}
+                </div>
               </CardContent>
             </Card>
 
@@ -377,7 +387,7 @@ export default function AdminDashboard() {
               <DialogDescription>Periksa detail nasabah lalu setujui atau tolak pickup sesuai kondisi operasional.</DialogDescription>
             </DialogHeader>
           {selectedPickup && (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <div className="text-sm text-gray-600">ID Pickup</div>
                 <div className="font-semibold">{selectedPickup.id}</div>
@@ -391,30 +401,28 @@ export default function AdminDashboard() {
                   <MapPin className="w-4 h-4" />
                   Alamat
                 </div>
-                <div>{selectedPickup.address || '-'}</div>
+                <div className="text-sm">{selectedPickup.address || '-'}</div>
               </div>
               <div>
                 <div className="text-sm text-gray-600 flex items-center gap-1">
                   <Phone className="w-4 h-4" />
                   Telepon
                 </div>
-                <div>{selectedPickup.phone || '-'}</div>
+                <div className="text-sm">{selectedPickup.phone || '-'}</div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <div className="text-sm text-gray-600">Tanggal</div>
-                  <div>
-                    {new Date(selectedPickup.date).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </div>
+              <div>
+                <div className="text-sm text-gray-600">Tanggal</div>
+                <div className="text-sm">
+                  {new Date(selectedPickup.date).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
                 </div>
-                <div>
-                  <div className="text-sm text-gray-600">Waktu</div>
-                  <div>{selectedPickup.time || '-'}</div>
-                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-600">Waktu</div>
+                <div className="text-sm">{selectedPickup.time || '-'}</div>
               </div>
               <div>
                 <div className="text-sm text-gray-600">Jenis Sampah</div>
@@ -424,46 +432,48 @@ export default function AdminDashboard() {
                 <div className="text-sm text-gray-600">Estimasi Berat</div>
                 <div className="font-semibold">~{selectedPickup.estimatedWeight} kg</div>
               </div>
-              <div>
-                <div className="text-sm text-gray-600">Catatan</div>
-                <div className="text-sm bg-gray-50 p-3 rounded-lg">{selectedPickup.notes || '-'}</div>
+              <div className="sm:col-span-2">
+                <div className="text-sm text-gray-600 mb-1">Catatan</div>
+                <div className="text-sm bg-gray-50 p-3 rounded-lg border border-gray-100 italic">
+                  "{selectedPickup.notes || 'Tidak ada catatan'}"
+                </div>
               </div>
-              <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
+              <div className="sm:col-span-2 rounded-lg border border-orange-200 bg-orange-50 p-3 text-xs text-orange-800">
                 Gunakan <span className="font-semibold">Setujui Pickup</span> jika permintaan sesuai jadwal dan area layanan. Gunakan
                 <span className="font-semibold"> Tolak Pickup</span> jika tanggal, area, atau kapasitas tidak memungkinkan.
               </div>
             </div>
           )}
-          <DialogFooter className="gap-2">
-            <Button className="w-full sm:w-auto" variant="outline" onClick={() => setShowDetailDialog(false)}>
+          <DialogFooter className="gap-2 flex-col sm:flex-row mt-6">
+            <Button className="w-full sm:w-auto" variant="ghost" onClick={() => setShowDetailDialog(false)}>
               Tutup
             </Button>
-            {selectedPickup && (
-              <>
-                {selectedPickup.status === 'pending' && (
-                  <Button
-                    className="w-full sm:w-auto"
-                    variant="outline"
-                    onClick={async () => {
-                      await handleRejectPickup(selectedPickup);
-                      setShowDetailDialog(false);
-                    }}
-                  >
-                    Tolak Pickup
-                  </Button>
-                )}
+            <div className="flex flex-1 gap-2">
+              {selectedPickup && selectedPickup.status === 'pending' && (
                 <Button
-                  className="w-full bg-green-600 hover:bg-green-700 sm:w-auto"
+                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                  variant="outline"
+                  onClick={async () => {
+                    await handleRejectPickup(selectedPickup);
+                    setShowDetailDialog(false);
+                  }}
+                >
+                  Tolak Pickup
+                </Button>
+              )}
+              {selectedPickup && (
+                <Button
+                  className="flex-1 bg-green-600 hover:bg-green-700 shadow-lg shadow-green-100"
                   disabled={selectedPickup.status !== 'pending'}
                   onClick={async () => {
                     await handleAcceptPickup(selectedPickup);
                     setShowDetailDialog(false);
                   }}
                 >
-                  {selectedPickup.status === 'pending' ? 'Setujui Pickup' : 'Pickup Sudah Diproses'}
+                  {selectedPickup.status === 'pending' ? 'Setujui Pickup' : 'Sudah Diproses'}
                 </Button>
-              </>
-            )}
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

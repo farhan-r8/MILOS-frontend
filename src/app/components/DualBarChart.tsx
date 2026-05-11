@@ -14,7 +14,7 @@ export function DualBarChart({ data }: DualBarChartProps) {
   const maxWeight = Math.max(...data.map(d => d.weight));
 
   return (
-    <div className="w-full h-[300px] flex flex-col">
+    <div className="w-full h-full flex flex-col">
       {/* Legend */}
       <div className="flex justify-center gap-6 mb-4">
         <div className="flex items-center gap-2">
@@ -38,8 +38,8 @@ export function DualBarChart({ data }: DualBarChartProps) {
 
         {/* Bars */}
         {data.map((item) => {
-          const transactionHeight = (item.transactions / maxTransactions) * 100;
-          const weightHeight = (item.weight / maxWeight) * 100;
+          const transactionHeight = maxTransactions > 0 ? (item.transactions / maxTransactions) * 100 : 0;
+          const weightHeight = maxWeight > 0 ? (item.weight / maxWeight) * 100 : 0;
 
           return (
             <div key={item.id} className="flex-1 flex flex-col items-center gap-3 relative z-10">
