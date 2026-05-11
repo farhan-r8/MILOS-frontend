@@ -488,13 +488,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-Sudah Diproses'}
-                </Button>
-              )}
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
