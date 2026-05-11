@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { Search, Filter, Calendar, Package, Activity, Recycle, Award, Clock } from 'lucide-react';
+import { Search, Filter, Calendar, Package, Activity, Recycle, Award, Clock, History } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchTransactions, type TransactionItem } from '../lib/milosApi';
 import { toast } from 'sonner';
