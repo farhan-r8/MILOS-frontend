@@ -94,8 +94,15 @@ export default function PointsPage() {
       <div className="pt-24 pb-12 container mx-auto px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-10 text-center md:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Poin & Hadiah</h1>
-            <p className="text-gray-500 mt-2 text-sm md:text-base">Dapatkan berbagai keuntungan dari tabungan sampah Anda.</p>
+            <div className="flex flex-col items-center md:items-start md:flex-row gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                <Award className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Poin & Hadiah</h1>
+                <p className="text-gray-500 mt-2 text-sm md:text-base">Dapatkan berbagai keuntungan dari tabungan sampah Anda.</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10">

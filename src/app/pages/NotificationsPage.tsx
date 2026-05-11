@@ -98,12 +98,16 @@ export default function NotificationsPage() {
       <div className="pt-24 pb-12 container mx-auto px-4 md:px-0">
         <div className="max-w-3xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 text-center sm:text-left">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center justify-center sm:justify-start gap-2">
-                <Bell className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
-                Notifikasi
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">Pantau aktivitas akun Anda secara real-time.</p>
+            <div className="flex flex-col items-center md:items-start md:flex-row gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                <Bell className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Notifikasi
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">Pantau aktivitas akun Anda secara real-time.</p>
+              </div>
             </div>
             <div className="flex justify-center gap-2">
               <Button variant="ghost" size="sm" onClick={markAllAsRead} disabled={notifications.length === 0} className="text-xs">

@@ -106,9 +106,14 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Halo, {user?.name.split(' ')[0]}!</h1>
-              <p className="text-gray-500 mt-1 text-sm md:text-base">Berikut adalah ringkasan aktivitas tabungan sampah Anda.</p>
+            <div className="flex flex-col items-center md:items-start md:flex-row gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                <LayoutDashboard className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-center md:text-left">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Halo, {user?.name.split(' ')[0]}!</h1>
+                <p className="text-gray-500 mt-1 text-sm md:text-base">Berikut adalah ringkasan aktivitas tabungan sampah Anda.</p>
+              </div>
             </div>
             <div className="grid grid-cols-2 sm:flex sm:items-center gap-3">
               <Button onClick={() => navigate('/sell')} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-200/50 h-11 md:h-12 text-sm">

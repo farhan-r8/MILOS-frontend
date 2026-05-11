@@ -164,7 +164,7 @@ export default function AdminRewardsPage() {
           <div className="mb-8 text-center md:text-left">
             <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3 justify-center md:justify-start">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
                   <Gift className="w-6 h-6 text-white" />
                 </div>
                 <div>

@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { Calendar, Clock, Package, CheckCircle2, Info, ListChecks, HelpCircle } from 'lucide-react';
+import { Calendar, Clock, Package, CheckCircle2, Info, ListChecks, HelpCircle, Truck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -268,9 +268,16 @@ export default function PickupPage() {
 
       <div className="pt-24 pb-12 container mx-auto px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-10 text-center">
-            <h1 className="text-3xl font-bold text-gray-900">Permintaan Pickup</h1>
-            <p className="text-gray-500 mt-2">Atur waktu pengambilan sampah Anda dengan mudah.</p>
+          <div className="mb-10 text-center md:text-left">
+            <div className="flex flex-col items-center md:items-start md:flex-row gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                <Truck className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Permintaan Pickup</h1>
+                <p className="text-gray-500 mt-2 text-sm md:text-base">Atur waktu pengambilan sampah Anda dengan mudah.</p>
+              </div>
+            </div>
           </div>
 
           <Tabs defaultValue="form" className="w-full">

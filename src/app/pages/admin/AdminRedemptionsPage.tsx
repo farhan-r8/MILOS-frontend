@@ -139,7 +139,7 @@ export default function AdminRedemptionsPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-8 text-center md:text-left">
             <div className="mb-4 flex flex-col items-center md:items-start md:flex-row gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -147,6 +147,7 @@ export default function AdminRedemptionsPage() {
                 <p className="text-gray-600">Kelola permintaan penukaran poin dengan barang</p>
               </div>
             </div>
+          </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>

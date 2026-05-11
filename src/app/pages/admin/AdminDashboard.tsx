@@ -13,6 +13,7 @@ import {
   ArrowRight,
   MapPin,
   Phone,
+  LayoutDashboard,
 } from 'lucide-react';
 import { DualBarChart } from '../../components/DualBarChart';
 import { useNavigate } from 'react-router';
@@ -170,8 +171,15 @@ export default function AdminDashboard() {
       <div className="pt-24 pb-12 container mx-auto px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8 text-center md:text-left">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard Admin</h1>
-            <p className="text-gray-600 mt-2">Ringkasan dan statistik Bank Sampah MILOS.</p>
+            <div className="flex flex-col items-center md:items-start md:flex-row gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                <LayoutDashboard className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard Admin</h1>
+                <p className="text-gray-600 mt-2">Ringkasan dan statistik Bank Sampah MILOS.</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
