@@ -10,11 +10,11 @@ interface SimpleLineChartProps {
 export function SimpleLineChart({ data }: SimpleLineChartProps) {
   const maxPoints = Math.max(...data.map(d => d.points));
   const minPoints = Math.min(...data.map(d => d.points));
-  const range = maxPoints - minPoints;
+  const range = maxPoints - minPoints || 1; // Prevent division by zero
 
   // Calculate positions for each point
   const points = data.map((item, index) => {
-    const x = (index / (data.length - 1)) * 100;
+    const x = data.length > 1 ? (index / (data.length - 1)) * 100 : 50;
     const y = 100 - ((item.points - minPoints) / range) * 100;
     return { x, y, ...item };
   });
@@ -28,7 +28,7 @@ export function SimpleLineChart({ data }: SimpleLineChartProps) {
   }).join(' ');
 
   return (
-    <div className="w-full h-[300px] relative">
+    <div className="w-full h-full relative">
       {/* Chart SVG */}
       <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
         {/* Grid lines */}

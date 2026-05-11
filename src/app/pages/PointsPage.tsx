@@ -174,11 +174,9 @@ export default function PointsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="px-0 pb-0">
-                    {monthlyData.length > 0 ? (
+                    <div className="h-[300px] w-full">
                       <SimpleLineChart data={monthlyData} />
-                    ) : (
-                      <div className="py-20 text-center text-gray-400">Belum ada riwayat poin.</div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -190,11 +188,9 @@ export default function PointsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="px-0 pb-0">
-                    {wasteTypeData.length > 0 ? (
+                    <div className="h-[300px] w-full">
                       <SimplePieChart data={wasteTypeData} />
-                    ) : (
-                      <div className="py-20 text-center text-gray-400">Belum ada data sampah.</div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -272,6 +268,20 @@ export default function PointsPage() {
 
           {/* Footer Info */}
           <div className="mt-16 p-6 rounded-3xl bg-blue-50/50 border border-blue-100 flex items-start gap-4">
+            <Info className="w-6 h-6 text-blue-500 shrink-0" />
+            <div className="text-sm">
+              <p className="font-bold text-blue-900">Nilai Tukar Poin</p>
+              <p className="text-blue-700/70 mt-1 leading-relaxed">
+                Setiap 1.000 poin bernilai setara dengan Rp 1.000. Poin dapat ditukarkan melalui katalog hadiah di atas atau dikonversi menjadi saldo digital melalui petugas di kantor Bank Sampah MILOS.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+-100 flex items-start gap-4">
             <Info className="w-6 h-6 text-blue-500 shrink-0" />
             <div className="text-sm">
               <p className="font-bold text-blue-900">Nilai Tukar Poin</p>
