@@ -147,7 +147,6 @@ export default function AdminRedemptionsPage() {
                 <p className="text-gray-600">Kelola permintaan penukaran poin dengan barang</p>
               </div>
             </div>
-          </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>

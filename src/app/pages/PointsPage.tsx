@@ -288,17 +288,3 @@ export default function PointsPage() {
     </div>
   );
 }
--100 flex items-start gap-4">
-            <Info className="w-6 h-6 text-blue-500 shrink-0" />
-            <div className="text-sm">
-              <p className="font-bold text-blue-900">Nilai Tukar Poin</p>
-              <p className="text-blue-700/70 mt-1 leading-relaxed">
-                Setiap 1.000 poin bernilai setara dengan Rp 1.000. Poin dapat ditukarkan melalui katalog hadiah di atas atau dikonversi menjadi saldo digital melalui petugas di kantor Bank Sampah MILOS.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
