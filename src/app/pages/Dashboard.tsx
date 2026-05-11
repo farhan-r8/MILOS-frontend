@@ -198,7 +198,7 @@ export default function Dashboard() {
                       <CardDescription>Poin yang Anda kumpulkan tiap bulannya.</CardDescription>
                     </CardHeader>
                     <CardContent className="px-0 pb-0">
-                      <div className="h-72 w-full">
+                      <div className="h-[300px] w-full">
                         <SimpleBarChart data={chartData} />
                       </div>
                     </CardContent>

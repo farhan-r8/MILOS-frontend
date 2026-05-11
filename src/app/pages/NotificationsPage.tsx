@@ -52,7 +52,7 @@ export default function NotificationsPage() {
         message: detail.message || '',
         type: detail.type || 'info',
         entity: detail.entity || 'general',
-        createdAt: new Date().toISOString(),
+        createdAt: detail.createdAt || new Date().toISOString(),
         read: false
       };
 
@@ -74,8 +74,10 @@ export default function NotificationsPage() {
   };
 
   const clearAll = () => {
-    setNotifications([]);
-    localStorage.removeItem(STORAGE_KEY);
+    if (confirm('Hapus semua riwayat notifikasi?')) {
+      setNotifications([]);
+      localStorage.removeItem(STORAGE_KEY);
+    }
   };
 
   const getIcon = (entity?: string, type?: string) => {

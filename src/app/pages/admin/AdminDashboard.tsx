@@ -243,7 +243,7 @@ export default function AdminDashboard() {
                 <CardDescription>Transaksi dan berat sampah berdasarkan data backend.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-72 w-full">
+                <div className="h-[300px] w-full">
                   <DualBarChart data={chartData} />
                 </div>
               </CardContent>
@@ -471,6 +471,16 @@ export default function AdminDashboard() {
                   }}
                 >
                   {selectedPickup.status === 'pending' ? 'Setujui Pickup' : 'Sudah Diproses'}
+                </Button>
+              )}
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+Sudah Diproses'}
                 </Button>
               )}
             </div>
